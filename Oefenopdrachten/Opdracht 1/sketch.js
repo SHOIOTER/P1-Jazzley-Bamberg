@@ -7,6 +7,12 @@ let chessboardPixelSize = 25;
 
 let trafficLightFrameHeight = 140;
 let trafficLightDiameter = 30;
+let trafficLightRadius = trafficLightDiameter / 2;
+
+let diceSize = 100;
+let halfDiceSize = diceSize / 2;
+let diceDotDiameter = 25;
+let diceDotRadius = diceDotDiameter / 2;
 
 let marioPixelList = [
   [-1, -1, -1, 0, 0, 0, 0, 0],
@@ -28,6 +34,48 @@ let marioPixelList = [
 ];
 let marioPixelSize = 8;
 
+let redScientistPixelList = [
+  [-1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0],
+  [-1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0],
+  [-1, 0, 0, 0, 2, 1, 1, 2, 0, 0, 2, 1, 1, 2, 0, 0, 0],
+  [-1, 0, 0, 0, 2, 1, 1, 2, 0, 0, 2, 1, 1, 2, 0, 0, 0],
+  [-1, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 0],
+  [-1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-1, -1, -1, -1, 2, 2, 2, 0, 3, 3, 0, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 0, 3, 3, 0, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 0, 3, 3, 0, 2, 2, 2, 2, -1, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 0, 3, 3, 0, 2, 2, 2, 2, -1, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 2, 2],
+  [2, 2, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 2, 2],
+  [3, 3, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 3, 3],
+  [3, 3, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 3, 3],
+  [3, 3, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2, -1, 3, 3],
+  [-1, -1, -1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2],
+  [-1, -1, -1, -1, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2],
+  [-1, -1, -1, -1, -1, 2, 2, 3, -1, -1, 3, 2, 2],
+  [-1, -1, -1, -1, -1, 2, 2, 3, -1, -1, 3, 2, 2],
+  [-1, -1, -1, -1, -1, 2, 2, 3, -1, -1, 3, 2, 2],
+  [-1, -1, -1, -1, -1, 2, 2, 3, -1, -1, 3, 2, 2],
+  [-1, -1, -1, -1, -1, 2, 2, 3, -1, -1, 3, 2, 2],
+  [-1, -1, -1, -1, -1, 3, 3, 3, -1, -1, 3, 3, 3],
+  [-1, -1, -1, -1, -1, 3, 3, 3, -1, -1, 3, 3, 3],
+  [-1, -1, -1, -1, -1, 3, 3, 3, -1, -1, 3, 3, 3],
+  [-1, -1, -1, -1, 3, 3, 3, 3, -1, -1, 3, 3, 3, 3],
+  [-1, -1, -1, 3, 3, 3, 3, 3, -1, -1, 3, 3, 3, 3, 3],
+  [-1, -1, -1, 3, 3, 3, 3, 3, -1, -1, 3, 3, 3, 3, 3],
+];
+let redScientistPixelSize = 5;
+
 function setup() {
   createCanvas(600, 400);
 }
@@ -39,7 +87,7 @@ function drawPixels(pixelList, pixelSize, pixelColors, xOffset, yOffset) {
       let pixelColor = pixelColors[pixelRow[x]];
       if (pixelColor) {
         fill(pixelColor);
-        square(x * pixelSize + xOffset, y * pixelSize, pixelSize + yOffset);
+        square(x * pixelSize + xOffset, y * pixelSize + yOffset, pixelSize);
       }
     }
   }
@@ -120,8 +168,6 @@ function draw() {
   rect(25, 0, 40, trafficLightFrameHeight);
   rect(35, trafficLightFrameHeight, 20, 40);
 
-  let trafficLightRadius = trafficLightDiameter / 2;
-
   fill(255, 0, 0);
   circle(45, trafficLightRadius + 10, trafficLightDiameter);
 
@@ -130,6 +176,24 @@ function draw() {
 
   fill(0, 255, 0);
   circle(45, trafficLightFrameHeight - trafficLightRadius - 10, trafficLightDiameter);
+
+  pop();
+
+  // Dice
+  push();
+  translate(150, 250);
+
+  text("6:", 0, 0);
+
+  fill(255);
+  strokeWeight(3);
+  square(20, 0, diceSize, 15);
+
+  fill(0);
+  noStroke();
+  circle(20 + diceDotRadius + 10, diceDotRadius + 10, diceDotDiameter);
+  circle(20 + halfDiceSize, halfDiceSize, diceDotDiameter);
+  circle(20 + diceSize - diceDotRadius - 10, diceSize - diceDotRadius - 10, diceDotDiameter);
 
   pop();
 
@@ -149,6 +213,26 @@ function draw() {
 
   noStroke();
   drawPixels(marioPixelList, marioPixelSize, marioPixelColors, 15, 0);
+
+  pop();
+
+  // Red Scientist
+  push();
+  translate(300, 200);
+
+  let redScientistPixelColors = [
+    color(255, 0, 0),
+    color(0),
+    color(255),
+    color(50, 50, 50)
+  ];
+
+  text("8:", 0, 0);
+
+  text("Red Scientist", 30, -10);
+
+  noStroke();
+  drawPixels(redScientistPixelList, redScientistPixelSize, redScientistPixelColors, 50, 0);
 
   pop();
 }
