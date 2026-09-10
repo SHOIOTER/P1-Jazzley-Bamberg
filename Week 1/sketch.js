@@ -87,7 +87,7 @@ function drawPixels(pixelList, pixelSize, pixelColors, xOffset, yOffset) {
       let pixelColor = pixelColors[pixelRow[x]];
       if (pixelColor) {
         fill(pixelColor);
-        square(x * pixelSize + xOffset, y * pixelSize + yOffset, pixelSize);
+        square(x * pixelSize + (xOffset || 0), y * pixelSize + (yOffset || 0), pixelSize);
       }
     }
   }
@@ -140,7 +140,7 @@ function draw() {
   square(15, 0, chessboardPixelSize * 3);
 
   noStroke();
-  drawPixels(chessboardPixelList, chessboardPixelSize, chessboardPixelColors, 15, 0);
+  drawPixels(chessboardPixelList, chessboardPixelSize, chessboardPixelColors, 15);
 
   pop();
 
@@ -212,7 +212,7 @@ function draw() {
   text("Mario", 30, -10);
 
   noStroke();
-  drawPixels(marioPixelList, marioPixelSize, marioPixelColors, 15, 0);
+  drawPixels(marioPixelList, marioPixelSize, marioPixelColors, 15);
 
   pop();
 
@@ -232,7 +232,7 @@ function draw() {
   text("Red Scientist", 30, -10);
 
   noStroke();
-  drawPixels(redScientistPixelList, redScientistPixelSize, redScientistPixelColors, 50, 0);
+  drawPixels(redScientistPixelList, redScientistPixelSize, redScientistPixelColors, 50);
 
   pop();
 }
