@@ -16,6 +16,7 @@ let otherBallCurrentShape = "Ball";
 
 let clickCount = 0;
 let spaceCount = 1;
+let squareCount = 0;
 
 function setup() {
   createCanvas(600, 400);
@@ -67,7 +68,7 @@ function draw() {
 
   fill(255, 0, 155)
   for (let x = 0; x < 30; x++) {
-    square(10 * x + 50, noise(x * 0.1, frameCount / 60) * 150, 10);
+    square(10 * x + 50, (noise(x * 0.1, frameCount / 60) - 0.5) * 150 + 100, 10);
   }
 
   pop();
@@ -127,17 +128,47 @@ function draw() {
   fill(0, 155, 255);
   stroke(1);
   textSize(20);
-  text("Power: " + spaceCount, 350, 230)
+  text("Power: " + spaceCount, 350, 260)
+
+  pop();
+
+  push();
+
+  fill(0, 255, 0);
+  stroke(1);
+  textSize(20);
+  text("Squares: " + squareCount, 350, 230)
+
+  pop();
+
+  push();
+
+  fill(255, 0, 255);
+  square(150, 300, 50);
+
+  pop();
+
+  push();
+
+  textSize(9);
+  stroke(10);
+  fill(255);
+  text("Click here!", 153, 330);
 
   pop();
 }
 
 function mouseClicked() {
-  clickCount += spaceCount;
+  if (mouseX >= 150 && mouseX <= 200 && mouseY >= 300 && mouseY <= 350) {
+    squareCount++;
+  } else {
+    clickCount += spaceCount * squareCount + 1;
+  }
 }
 
 function keyPressed() {
-  spaceCount++;
+  if (key == " ") {
+    spaceCount++;
+  }
 }
-
 // f12 or (ctlr + shift + i)
