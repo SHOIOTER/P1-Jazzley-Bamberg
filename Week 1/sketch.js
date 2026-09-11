@@ -195,6 +195,8 @@ function draw() {
   strokeWeight(3);
   square(20, 0, diceSize, 15);
 
+  // Used circles instead of dots, but too lazy to change
+
   fill(0);
   noStroke();
   circle(20 + diceDotRadius + 10, diceDotRadius + 10, diceDotDiameter);
@@ -224,7 +226,7 @@ function draw() {
   pop();
 
   // Red Scientist
-  
+
   push();
   translate(300, 200);
 
