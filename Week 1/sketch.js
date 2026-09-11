@@ -97,6 +97,7 @@ function draw() {
   background(220);
 
   // My name
+
   push();
   translate(20, 25);
 
@@ -109,6 +110,7 @@ function draw() {
   pop();
 
   // Dutch flag
+
   push();
   translate(20, 60);
 
@@ -125,6 +127,7 @@ function draw() {
   pop();
 
   // Chessboard
+
   push();
   translate(20, 150);
 
@@ -145,6 +148,7 @@ function draw() {
   pop();
 
   // Transparent house
+
   push();
   translate(20, 290);
 
@@ -158,6 +162,7 @@ function draw() {
   pop();
 
   // Traffic light
+
   push();
   translate(150, 25);
 
@@ -180,6 +185,7 @@ function draw() {
   pop();
 
   // Dice
+
   push();
   translate(150, 250);
 
@@ -198,6 +204,7 @@ function draw() {
   pop();
 
   // Pixel Mario
+
   push();
   translate(350, 35);
 
@@ -217,6 +224,7 @@ function draw() {
   pop();
 
   // Red Scientist
+  
   push();
   translate(300, 200);
 

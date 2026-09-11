@@ -4,6 +4,9 @@ let roadStrokeSpacing = 150;
 let roadStrokeOffset = -25;
 let roadLayerHeight = 10;
 
+let celestialBodyStartY = 600;
+let celestialBodyTargetY = 75;
+
 let sunCircleMin = 70;
 let sunCircleMax = 140;
 let sunCircleElapsed = 0;
@@ -11,21 +14,46 @@ let sunCircleDuration = 150;
 
 let sunCircleMaxRadius = sunCircleMax / 2;
 let sunStartX = -sunCircleMaxRadius - 1;
-let sunStartY = 600;
-let sunTargetY = 75;
 let sunElapsed = 0;
 let sunDuration = 2000;
+
+let moonSize = 90;
+
+let moonRadius = moonSize / 2;
+let moonStartX = -moonRadius - 1;
+let moonElapsed = 0;
+let moonDuration = 2000;
+
+let currentBackgroundColor = undefined;
+let isDayTime = true;
 
 let towerHeight = 500;
 let towerSide = 700;
 let windowSize = 40;
+
+let cloudStartX = -300;
+let cloudTargetX = 300;
+let cloudList = [
+  {
+    Elapsed: 0,
+    Duration: 1000
+  },
+  {
+    Elapsed: 0,
+    Duration: 500
+  },
+  {
+    Elapsed: 0,
+    Duration: 1500
+  }
+];
 
 function setup() {
   createCanvas(1000, 800);
 }
 
 function getLoopedT(t) {
-  return -abs(t * 2 - 1) + 1;
+  return abs(t * 2 - 1);
 }
 
 function getQuadT(t) {
@@ -33,7 +61,18 @@ function getQuadT(t) {
 }
 
 function draw() {
-  background(0, 235, 255);
+  /*
+   Background color is based on currentBackgroundColor
+   Which will change depending on the current point in the day cycle
+  */
+
+  if (!currentBackgroundColor) {
+    currentBackgroundColor = color(0, 235, 255);
+  }
+
+  background(currentBackgroundColor);
+
+  // Road
 
   push();
 
@@ -60,33 +99,68 @@ function draw() {
 
   pop();
 
+  // Celestial body cycle (sun & moon)
+
   push();
 
-  let sunTargetX = width + sunCircleMaxRadius + 1;
-  let sunAlpha = sunElapsed / sunDuration;
+  let cycleDayColor = color(0, 235, 255);
+  let cycleMidPointColor = color(255, 200, 100);
+  let cycleNightColor = color(50, 50, 100);
 
-  translate(lerp(sunStartX, sunTargetX, sunAlpha), lerp(sunStartY, sunTargetY, getQuadT(sunAlpha)));
+  if (isDayTime) {
+    sunCircleElapsed++;
+    sunElapsed++;
 
-  sunCircleElapsed++;
-  sunElapsed++;
+    let sunTargetX = width + sunCircleMaxRadius + 1;
+    let sunAlpha = sunElapsed / sunDuration;
+    currentBackgroundColor = lerpColor(cycleMidPointColor, cycleDayColor, abs(getLoopedT(sunAlpha) - 1));
 
-  noStroke();
-  fill(255, 155, 0, 255 / 2);
-  for (let i = 0; i < 2; i++) {
-    circle(0, 0, lerp(sunCircleMin, sunCircleMax, abs(getLoopedT(sunCircleElapsed / sunCircleDuration) - i)));
+    translate(lerp(sunStartX, sunTargetX, sunAlpha), lerp(celestialBodyStartY, celestialBodyTargetY, getQuadT(sunAlpha)));
+
+    noStroke();
+    fill(255, 155, 0, 255 / 2);
+    for (let i = 0; i < 2; i++) {
+      circle(0, 0, lerp(sunCircleMin, sunCircleMax, abs(getLoopedT(sunCircleElapsed / sunCircleDuration) - i)));
+    }
+
+    fill(255, 255, 0);
+    circle(0, 0, sunCircleMin);
+
+    if (sunCircleElapsed == sunCircleDuration) {
+      sunCircleElapsed = 0;
+    }
+    if (sunElapsed == sunDuration) {
+      sunElapsed = 0;
+      isDayTime = false;
+    }
+  } else {
+    moonElapsed++;
+
+    let moonTargetX = width + moonRadius + 1;
+    let moonAlpha = moonElapsed / moonDuration;
+    currentBackgroundColor = lerpColor(cycleMidPointColor, cycleNightColor, abs(getLoopedT(moonAlpha) - 1));
+
+    translate(lerp(moonStartX, moonTargetX, moonAlpha), lerp(celestialBodyStartY, celestialBodyTargetY, getQuadT(moonAlpha)));
+
+    noStroke();
+    fill(255);
+    circle(0, 0, moonSize);
+
+    fill(225);
+    circle(20, 5, 20);
+    circle(-25, 15, 25);
+    circle(-5, -20, 15);
+    circle(0, 20, 15);
+
+    if (moonElapsed == moonDuration) {
+      moonElapsed = 0;
+      isDayTime = true;
+    }
   }
-
-  if (sunCircleElapsed == sunCircleDuration) {
-    sunCircleElapsed = 0;
-  }
-  if (sunElapsed == sunDuration) {
-    sunElapsed = 0;
-  }
-
-  fill(255, 255, 0);
-  circle(0, 0, sunCircleMin);
 
   pop();
+
+  // My custom tower
 
   push();
 
@@ -98,10 +172,10 @@ function draw() {
 
   stroke(1);
   textSize(15);
-  fill(200);
+  fill(isDayTime && 225 || color(255, 0, 0));
   text("SHOIOTER's Tower", towerSide + 8, towerTop + 35);
 
-  fill(0, 155, 255);
+  fill(isDayTime && color(0, 155, 255) || 255);
   for (let y = 0; y < 7; y++) {
     for (let x = 0; x < 2; x++) {
       stroke(150);
@@ -111,6 +185,8 @@ function draw() {
   }
 
   pop();
+
+  // The moutains
 
   push();
 
@@ -123,6 +199,30 @@ function draw() {
 
   fill(100, 100, 110);
   triangle(400, backgroundFloorHeight, 650, backgroundFloorHeight - 250, 900, backgroundFloorHeight);
+
+  pop();
+
+  // The clouds
+
+  push();
+
+  noStroke();
+  for (let i = 0; i < cloudList.length; i++) {
+    let cloudSettings = cloudList[i];
+    let cloudY = cloudSettings.PosY;
+    cloudSettings.Elapsed++;
+    let cloudElapsed = cloudSettings.Elapsed;
+    let cloudDuration = cloudSettings.Duration;
+
+    if (!cloudY) {
+      cloudY = random();
+      cloudSettings.PosY = cloudY;
+    }
+
+    if (cloudElapsed == cloudDuration) {
+      cloudSettings.Elapsed = 0;
+    }
+  }
 
   pop();
 }
