@@ -31,8 +31,10 @@ let towerHeight = 500;
 let towerSide = 700;
 let windowSize = 40;
 
-let cloudStartX = -300;
-let cloudTargetX = 300;
+let cloudSize = 80;
+let cloudTargetX = -200;
+let cloudMinHeight = 50;
+let cloudMaxHeight = 200;
 let cloudList = [
   {
     Elapsed: 0,
@@ -40,11 +42,11 @@ let cloudList = [
   },
   {
     Elapsed: 0,
-    Duration: 500
+    Duration: 2000
   },
   {
     Elapsed: 0,
-    Duration: 1500
+    Duration: 3000
   }
 ];
 
@@ -202,9 +204,8 @@ function draw() {
 
   pop();
 
-  // The clouds
-
-  push();
+  let cloudStartX = width + 200;
+  let smallCloudPieceSize = cloudSize * 0.8;
 
   noStroke();
   for (let i = 0; i < cloudList.length; i++) {
@@ -215,16 +216,29 @@ function draw() {
     let cloudDuration = cloudSettings.Duration;
 
     if (!cloudY) {
-      cloudY = random();
+      cloudY = random(cloudMinHeight, cloudMaxHeight + 1);
       cloudSettings.PosY = cloudY;
     }
+
+    push();
+    translate(lerp(cloudStartX, cloudTargetX, cloudElapsed / cloudDuration), cloudY);
+
+    fill(225);
+    circle(-40, 0, smallCloudPieceSize)
+    circle(0, -10, cloudSize);
+    circle(40, 0, smallCloudPieceSize)
+
+    fill(255);
+    circle(-40, 10, smallCloudPieceSize)
+    circle(0, 0, cloudSize);
+    circle(40, 10, smallCloudPieceSize)
+
+    pop();
 
     if (cloudElapsed == cloudDuration) {
       cloudSettings.Elapsed = 0;
     }
   }
-
-  pop();
 }
 
 function keyPressed() {
