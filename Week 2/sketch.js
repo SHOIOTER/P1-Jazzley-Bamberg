@@ -132,10 +132,10 @@ function draw() {
     fill(255, 255, 0);
     circle(0, 0, sunCircleMin);
 
-    if (sunCircleElapsed == sunCircleDuration) {
+    if (sunCircleElapsed === sunCircleDuration) {
       sunCircleElapsed = 0;
     }
-    if (sunElapsed == sunDuration) {
+    if (sunElapsed === sunDuration) {
       sunElapsed = 0;
       isDayTime = false;
     }
@@ -158,7 +158,7 @@ function draw() {
     circle(-5, -20, 15);
     circle(0, 20, 15);
 
-    if (moonElapsed == moonDuration) {
+    if (moonElapsed === moonDuration) {
       moonElapsed = 0;
       isDayTime = true;
     }
@@ -226,7 +226,7 @@ function draw() {
       cloudSettings.PosY = cloudY;
     }
 
-    if (cloudElapsed == undefined) {
+    if (cloudElapsed === undefined) {
       cloudElapsed = round(random(0, cloudDuration));
       cloudSettings.Elapsed = cloudElapsed;
     } else {
@@ -249,16 +249,14 @@ function draw() {
 
     pop();
 
-    console.log(cloudElapsed)
-
-    if (cloudElapsed == cloudDuration) {
+    if (cloudElapsed === cloudDuration) {
       cloudSettings.Elapsed = 0;
     }
   }
 }
 
 function keyPressed() {
-  if (key == "Enter") {
+  if (key === "Enter") {
     // Traffic light logic here, will make that later
     console.log("Enter pressed!");
   }
