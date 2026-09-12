@@ -24,29 +24,33 @@ let moonStartX = -moonRadius - 1;
 let moonElapsed = 0;
 let moonDuration = 2000;
 
-let currentBackgroundColor = undefined;
+let currentBackgroundColor = null;
 let isDayTime = true;
 
 let towerHeight = 500;
 let towerSide = 700;
 let windowSize = 40;
 
-let cloudSize = 80;
+let cloudSize = 75;
 let cloudTargetX = -200;
 let cloudMinHeight = 50;
-let cloudMaxHeight = 200;
+let cloudMaxHeight = 250;
 let cloudList = [
   {
-    Elapsed: 0,
-    Duration: 1000
+    Duration: 1000,
+    Scale: 0.9
   },
   {
-    Elapsed: 0,
-    Duration: 2000
+    Duration: 2000,
+    Scale: 1
   },
   {
-    Elapsed: 0,
-    Duration: 3000
+    Duration: 3000,
+    Scale: 1.1
+  },
+  {
+    Duration: 1500,
+    Scale: 1.2
   }
 ];
 
@@ -205,35 +209,47 @@ function draw() {
   pop();
 
   let cloudStartX = width + 200;
-  let smallCloudPieceSize = cloudSize * 0.8;
 
   noStroke();
   for (let i = 0; i < cloudList.length; i++) {
     let cloudSettings = cloudList[i];
     let cloudY = cloudSettings.PosY;
-    cloudSettings.Elapsed++;
     let cloudElapsed = cloudSettings.Elapsed;
     let cloudDuration = cloudSettings.Duration;
+
+    let cloudScale = cloudSettings.Scale;
+    let scaledCloudSize = cloudSize * cloudScale;
+    let smallCloudPieceSize = scaledCloudSize * 0.8;
 
     if (!cloudY) {
       cloudY = random(cloudMinHeight, cloudMaxHeight + 1);
       cloudSettings.PosY = cloudY;
     }
 
+    if (cloudElapsed == undefined) {
+      cloudElapsed = round(random(0, cloudDuration));
+      cloudSettings.Elapsed = cloudElapsed;
+    } else {
+      cloudElapsed++;
+      cloudSettings.Elapsed = cloudElapsed;
+    }
+
     push();
     translate(lerp(cloudStartX, cloudTargetX, cloudElapsed / cloudDuration), cloudY);
 
     fill(225);
-    circle(-40, 0, smallCloudPieceSize)
-    circle(0, -10, cloudSize);
-    circle(40, 0, smallCloudPieceSize)
+    circle(-40 * cloudScale, 0, smallCloudPieceSize)
+    circle(0, -10 * cloudScale, scaledCloudSize);
+    circle(40 * cloudScale, 0, smallCloudPieceSize)
 
     fill(255);
-    circle(-40, 10, smallCloudPieceSize)
-    circle(0, 0, cloudSize);
-    circle(40, 10, smallCloudPieceSize)
+    circle(-40 * cloudScale, 10 * cloudScale, smallCloudPieceSize);
+    circle(0, 0, scaledCloudSize);
+    circle(40 * cloudScale, 10 * cloudScale, smallCloudPieceSize)
 
     pop();
+
+    console.log(cloudElapsed)
 
     if (cloudElapsed == cloudDuration) {
       cloudSettings.Elapsed = 0;
