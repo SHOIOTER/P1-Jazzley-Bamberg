@@ -3,6 +3,12 @@ let roadStrokeLength = 100;
 let roadStrokeSpacing = 150;
 let roadStrokeOffset = -25;
 let roadLayerHeight = 10;
+let roadOrigin = null;
+let backgroundFloorHeight = null;
+
+let cycleDayColor = null;
+let cycleMidPointColor = null;
+let cycleNightColor = null;
 
 let celestialBodyStartY = 600;
 let celestialBodyTargetY = 75;
@@ -14,6 +20,7 @@ let sunCircleDuration = 150;
 
 let sunCircleMaxRadius = sunCircleMax / 2;
 let sunStartX = -sunCircleMaxRadius - 1;
+let sunTargetX = null;
 let sunElapsed = 0;
 let sunDuration = 2000;
 
@@ -21,6 +28,7 @@ let moonSize = 90;
 
 let moonRadius = moonSize / 2;
 let moonStartX = -moonRadius - 1;
+let moonTargetX = null;
 let moonElapsed = 0;
 let moonDuration = 2000;
 
@@ -28,10 +36,12 @@ let currentBackgroundColor = null;
 let isDayTime = true;
 
 let towerHeight = 500;
+let towerTop = null;
 let towerSide = 700;
 let windowSize = 40;
 
 let cloudSize = 75;
+let cloudStartX = null;
 let cloudTargetX = -200;
 let cloudMinHeight = 50;
 let cloudMaxHeight = 250;
@@ -55,7 +65,21 @@ let cloudList = [
 ];
 
 function setup() {
+  // Some variable initializing
+
+  cycleDayColor = color(0, 235, 255);
+  cycleMidPointColor = color(255, 200, 100);
+  cycleNightColor = color(50, 50, 100);
+  currentBackgroundColor = color(0, 235, 255);
+
   createCanvas(1000, 800);
+
+  roadOrigin = height - roadHeight;
+  backgroundFloorHeight = roadOrigin - roadLayerHeight * 3;
+  towerTop = backgroundFloorHeight - towerHeight;
+  sunTargetX = width + sunCircleMaxRadius + 1;
+  moonTargetX = width + moonRadius + 1;
+  cloudStartX = width + 200;
 }
 
 function getLoopedT(t) {
@@ -69,21 +93,14 @@ function getQuadT(t) {
 function draw() {
   /*
    Background color is based on currentBackgroundColor
-   Which will change depending on the current point in the day cycle
+   Which will change depending on the current point in the day/night cycle
   */
-
-  if (!currentBackgroundColor) {
-    currentBackgroundColor = color(0, 235, 255);
-  }
 
   background(currentBackgroundColor);
 
   // Road
 
   push();
-
-  let roadOrigin = height - roadHeight;
-  let backgroundFloorHeight = roadOrigin - roadLayerHeight * 3;
 
   noStroke();
   fill(100);
@@ -109,15 +126,10 @@ function draw() {
 
   push();
 
-  let cycleDayColor = color(0, 235, 255);
-  let cycleMidPointColor = color(255, 200, 100);
-  let cycleNightColor = color(50, 50, 100);
-
   if (isDayTime) {
     sunCircleElapsed++;
     sunElapsed++;
 
-    let sunTargetX = width + sunCircleMaxRadius + 1;
     let sunAlpha = sunElapsed / sunDuration;
     currentBackgroundColor = lerpColor(cycleMidPointColor, cycleDayColor, abs(getLoopedT(sunAlpha) - 1));
 
@@ -142,7 +154,6 @@ function draw() {
   } else {
     moonElapsed++;
 
-    let moonTargetX = width + moonRadius + 1;
     let moonAlpha = moonElapsed / moonDuration;
     currentBackgroundColor = lerpColor(cycleMidPointColor, cycleNightColor, abs(getLoopedT(moonAlpha) - 1));
 
@@ -169,8 +180,6 @@ function draw() {
   // My custom tower
 
   push();
-
-  let towerTop = backgroundFloorHeight - towerHeight
 
   noStroke();
   fill(255, 100, 100);
@@ -207,8 +216,6 @@ function draw() {
   triangle(400, backgroundFloorHeight, 650, backgroundFloorHeight - 250, 900, backgroundFloorHeight);
 
   pop();
-
-  let cloudStartX = width + 200;
 
   noStroke();
   for (let i = 0; i < cloudList.length; i++) {
