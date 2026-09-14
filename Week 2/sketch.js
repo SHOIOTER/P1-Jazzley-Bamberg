@@ -64,6 +64,43 @@ let cloudList = [
   }
 ];
 
+let carMinBaseDuration = 90;
+let carMaxBaseDuration = 180;
+let carStartX = -200;
+let carTargetX = null;
+let carList = null;
+let carFunctions = {
+  Default: function(baseColor) {
+    fill(baseColor);
+    rect(0, -40, 100, 40);
+    rect(0, 0, 150, 50);
+    fill(0, 155, 255);
+    rect(5, -30, 40, 30);
+    rect(55, -30, 40, 30);
+    fill(50);
+    circle(35, 50, 50);
+    circle(110, 50, 50);
+  },
+  Floating: function(baseColor) {
+    fill(baseColor);
+    circle(0, 0, 50);
+  }
+}
+
+let vehicleTransitionDuration = 60;
+let vehicleTransitionElapsed = vehicleTransitionDuration;
+let currentVehicleSpeed = 1;
+let currentSpeedStart = currentVehicleSpeed;
+let currentSpeedTarget = currentVehicleSpeed;
+
+function getRandomColor() {
+  return color(random(0, 255), random(0, 255), random(0, 255));
+}
+
+function getRandomDuration(speedMultiplier) {
+  return random(carMinBaseDuration, carMaxBaseDuration) / (speedMultiplier || 1);
+}
+
 function setup() {
   // Some variable initializing
 
@@ -80,6 +117,31 @@ function setup() {
   sunTargetX = width + sunCircleMaxRadius + 1;
   moonTargetX = width + moonRadius + 1;
   cloudStartX = width + 200;
+
+  for (let cloudSettings of cloudList) {
+    cloudSettings.PosY = random(cloudMinHeight, cloudMaxHeight);
+    cloudSettings.Elapsed = random(0, cloudSettings.Duration);
+  }
+
+  carList = [
+    {
+      Name: "Default",
+      PosY: height - 150,
+      SpeedMultiplier: 1.5
+    },
+    {
+      Name: "Floating",
+      PosY: height - 50
+    }
+  ];
+
+  for (carSettings of carList) {
+    carSettings.Elapsed = 0;
+    carSettings.BaseColor = getRandomColor();
+    carSettings.Duration = getRandomDuration(carSettings.SpeedMultiplier);
+  }
+
+  carTargetX = width + 200;
 }
 
 function getLoopedT(t) {
@@ -144,10 +206,10 @@ function draw() {
     fill(255, 255, 0);
     circle(0, 0, sunCircleMin);
 
-    if (sunCircleElapsed === sunCircleDuration) {
+    if (sunCircleElapsed >= sunCircleDuration) {
       sunCircleElapsed = 0;
     }
-    if (sunElapsed === sunDuration) {
+    if (sunElapsed >= sunDuration) {
       sunElapsed = 0;
       isDayTime = false;
     }
@@ -169,7 +231,7 @@ function draw() {
     circle(-5, -20, 15);
     circle(0, 20, 15);
 
-    if (moonElapsed === moonDuration) {
+    if (moonElapsed >= moonDuration) {
       moonElapsed = 0;
       isDayTime = true;
     }
@@ -217,29 +279,17 @@ function draw() {
 
   pop();
 
+  // The moving clouds
+
   noStroke();
-  for (let i = 0; i < cloudList.length; i++) {
-    let cloudSettings = cloudList[i];
+  for (let cloudSettings of cloudList) {
     let cloudY = cloudSettings.PosY;
-    let cloudElapsed = cloudSettings.Elapsed;
+    let cloudElapsed = cloudSettings.Elapsed + 1;
     let cloudDuration = cloudSettings.Duration;
 
     let cloudScale = cloudSettings.Scale;
     let scaledCloudSize = cloudSize * cloudScale;
     let smallCloudPieceSize = scaledCloudSize * 0.8;
-
-    if (!cloudY) {
-      cloudY = random(cloudMinHeight, cloudMaxHeight + 1);
-      cloudSettings.PosY = cloudY;
-    }
-
-    if (cloudElapsed === undefined) {
-      cloudElapsed = round(random(0, cloudDuration));
-      cloudSettings.Elapsed = cloudElapsed;
-    } else {
-      cloudElapsed++;
-      cloudSettings.Elapsed = cloudElapsed;
-    }
 
     push();
     translate(lerp(cloudStartX, cloudTargetX, cloudElapsed / cloudDuration), cloudY);
@@ -256,15 +306,44 @@ function draw() {
 
     pop();
 
-    if (cloudElapsed === cloudDuration) {
-      cloudSettings.Elapsed = 0;
+    cloudSettings.Elapsed = (cloudElapsed < cloudDuration && cloudElapsed || 0)
+  }
+
+  // The moving cars
+
+  if (vehicleTransitionElapsed < vehicleTransitionDuration) {
+    vehicleTransitionElapsed++;
+    currentVehicleSpeed = lerp(currentSpeedStart, currentSpeedTarget, vehicleTransitionElapsed / vehicleTransitionDuration);
+  }
+
+  for (let carSettings of carList) {
+    let carY = carSettings.PosY;
+    let carElapsed = carSettings.Elapsed + currentVehicleSpeed;
+    let carDuration = carSettings.Duration;
+    let carBaseColor = carSettings.BaseColor;
+    let carName = carSettings.Name;
+
+    push();
+    translate(lerp(carStartX, carTargetX, carElapsed / carDuration), carY);
+
+    carFunctions[carName](carBaseColor);
+
+    pop()
+
+    if (carElapsed < carDuration) {
+      carSettings.Elapsed = carElapsed;
+    } else {
+      carSettings.Elapsed = 0;
+      carSettings.BaseColor = getRandomColor();
+      carSettings.Duration = getRandomDuration(carSettings.SpeedMultiplier);
     }
   }
 }
 
 function keyPressed() {
   if (key === "Enter") {
-    // Traffic light logic here, will make that later
-    console.log("Enter pressed!");
+    vehicleTransitionElapsed = 0;
+    currentSpeedStart = currentVehicleSpeed;
+    currentSpeedTarget = (currentSpeedTarget <= 0 && 1 || currentSpeedTarget - 0.5);
   }
 }
