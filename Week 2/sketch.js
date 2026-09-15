@@ -35,7 +35,7 @@ let moonDuration = 2000;
 let currentBackgroundColor = null;
 let isDayTime = true;
 
-let towerHeight = 500;
+let towerHeight = 600;
 let towerTop = null;
 let towerSide = 700;
 let windowSize = 40;
@@ -64,27 +64,79 @@ let cloudList = [
   }
 ];
 
+let trafficLightFrameWidth = 40;
+let trafficLightFrameHeight = 140;
+let trafficLightDiameter = 30;
+let trafficLightRadius = trafficLightDiameter / 2;
+let trafficLightOffset = trafficLightFrameWidth / 2;
+let trafficLightOffColor = null;
+let trafficLightStandWidth = 15;
+let trafficLightStandHeight = 80;
+let trafficLightPosX = 900;
+let trafficLightColor = null;
+let autoLightSwitch = false;
+let autoLightSwitchInterval = 180;
+
+let lane1PosY = 650;
+let lane2PosY = 715;
+
 let carMinBaseDuration = 90;
 let carMaxBaseDuration = 180;
-let carStartX = -200;
+let carStartX = -300;
 let carTargetX = null;
-let carList = null;
-let carFunctions = {
-  Default: function(baseColor) {
-    fill(baseColor);
-    rect(0, -40, 100, 40);
-    rect(0, 0, 150, 50);
-    fill(0, 155, 255);
-    rect(5, -30, 40, 30);
-    rect(55, -30, 40, 30);
-    fill(50);
-    circle(35, 50, 50);
-    circle(110, 50, 50);
+let carList = [
+  {
+    UpperLane: true,
+    SpeedMultiplier: 1.5
   },
-  Floating: function(baseColor) {
-    fill(baseColor);
-    circle(0, 0, 50);
+  {
+    UpperLane: true,
+    SpeedMultiplier: 1.5
+  },
+  {},
+  {}
+];
+let carModels = [
+  {
+    Weight: 300,
+    Create: function (baseColor) {
+      fill(baseColor);
+      rect(15, -40, 100, 40);
+      rect(0, 0, 150, 50);
+      fill(0, 155, 255);
+      rect(20, -30, 40, 30, 5);
+      rect(70, -30, 40, 30, 5);
+      fill(50);
+      circle(35, 50, 50);
+      circle(110, 50, 50);
+    }
+  },
+  {
+    Weight: 50,
+    Create: function (baseColor) {
+      fill(baseColor);
+      rect(15, -40, 100, 40, 20);
+      rect(0, 0, 150, 50, 20);
+      fill(0, 155, 255);
+      rect(25, -35, 30, 30, 20);
+      rect(70, -35, 30, 30, 20);
+      fill(50);
+      circle(35, 50, 50);
+      circle(110, 50, 50);
+    }
+  },
+  {
+    Weight: 10,
+    Create: function(baseColor) {
+      scale(2);
+      translate(0, -40);
+      carModels[0].Create(baseColor);
+    }
   }
+];
+let totalCarWeight = 0;
+for (let carModel of carModels) {
+  totalCarWeight += carModel.Weight;
 }
 
 let vehicleTransitionDuration = 60;
@@ -99,6 +151,26 @@ function getRandomColor() {
 
 function getRandomDuration(speedMultiplier) {
   return random(carMinBaseDuration, carMaxBaseDuration) / (speedMultiplier || 1);
+}
+
+function getRandomCarModel() {
+  let randomCarWeight = random(0, totalCarWeight);
+  let currentCarWeight = 0;
+
+  for (let carModel of carModels) {
+    currentCarWeight += carModel.Weight;
+    if (randomCarWeight <= currentCarWeight) {
+      return carModel.Create;
+    }
+  }
+}
+
+function getLoopedT(t) {
+  return abs(t * 2 - 1);
+}
+
+function getQuadT(t) {
+  return -pow(t * 2 - 1, 2) + 1;
 }
 
 function setup() {
@@ -123,33 +195,24 @@ function setup() {
     cloudSettings.Elapsed = random(0, cloudSettings.Duration);
   }
 
-  carList = [
-    {
-      Name: "Default",
-      PosY: height - 150,
-      SpeedMultiplier: 1.5
-    },
-    {
-      Name: "Floating",
-      PosY: height - 50
-    }
-  ];
+  trafficLightOffColor = color(70);
+  trafficLightColor = color(100);
 
   for (carSettings of carList) {
     carSettings.Elapsed = 0;
     carSettings.BaseColor = getRandomColor();
     carSettings.Duration = getRandomDuration(carSettings.SpeedMultiplier);
+    carSettings.PosY = (carSettings.UpperLane && lane1PosY || lane2PosY);
+    carSettings.Create = getRandomCarModel();
   }
 
-  carTargetX = width + 200;
+  carTargetX = width + 300;
 }
 
-function getLoopedT(t) {
-  return abs(t * 2 - 1);
-}
-
-function getQuadT(t) {
-  return -pow(t * 2 - 1, 2) + 1;
+function switchTrafficLight() {
+  vehicleTransitionElapsed = 0;
+  currentSpeedStart = currentVehicleSpeed;
+  currentSpeedTarget = (currentSpeedTarget <= 0 && 1 || currentSpeedTarget - 0.5);
 }
 
 function draw() {
@@ -247,13 +310,14 @@ function draw() {
   fill(255, 100, 100);
   rect(towerSide, towerTop, 150, towerHeight);
 
-  stroke(1);
+  stroke(0);
+  strokeWeight(1);
   textSize(15);
-  fill(isDayTime && 225 || color(255, 0, 0));
+  fill(isDayTime && 255 || color(255, 155, 0));
   text("SHOIOTER's Tower", towerSide + 8, towerTop + 35);
 
   fill(isDayTime && color(0, 155, 255) || 255);
-  for (let y = 0; y < 7; y++) {
+  for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 2; x++) {
       stroke(150);
       strokeWeight(5);
@@ -295,19 +359,60 @@ function draw() {
     translate(lerp(cloudStartX, cloudTargetX, cloudElapsed / cloudDuration), cloudY);
 
     fill(225);
-    circle(-40 * cloudScale, 0, smallCloudPieceSize)
+    circle(-40 * cloudScale, 0, smallCloudPieceSize);
     circle(0, -10 * cloudScale, scaledCloudSize);
-    circle(40 * cloudScale, 0, smallCloudPieceSize)
+    circle(40 * cloudScale, 0, smallCloudPieceSize);
 
     fill(255);
     circle(-40 * cloudScale, 10 * cloudScale, smallCloudPieceSize);
     circle(0, 0, scaledCloudSize);
-    circle(40 * cloudScale, 10 * cloudScale, smallCloudPieceSize)
+    circle(40 * cloudScale, 10 * cloudScale, smallCloudPieceSize);
 
     pop();
 
     cloudSettings.Elapsed = (cloudElapsed < cloudDuration && cloudElapsed || 0)
   }
+
+  // The back trees
+
+  fill(0, 255, 0);
+  circle(500, lerp(100, 400, noise(frameCount / 60 / 2)), 50);
+
+  // Some background stuff for auto light switching
+
+  push();
+
+  textSize(20);
+  fill(255, 155, 255);
+  stroke(0);
+  text("AutoLightSwitch (Space): " + (autoLightSwitch && "On" || "Off"), 15, 30);
+
+  if (autoLightSwitch && frameCount % autoLightSwitchInterval == 0) {
+    switchTrafficLight();
+  }
+
+  pop();
+
+  // The traffic light
+
+  push();
+  translate(trafficLightPosX, backgroundFloorHeight - trafficLightFrameHeight - trafficLightStandHeight);
+
+  noStroke();
+  fill(trafficLightColor);
+  rect(0, 0, trafficLightFrameWidth, trafficLightFrameHeight);
+  rect(trafficLightOffset - trafficLightStandWidth / 2, trafficLightFrameHeight, trafficLightStandWidth, trafficLightStandHeight);
+
+  fill(currentSpeedTarget <= 0 && color(255, 0, 0) || trafficLightOffColor);
+  circle(trafficLightOffset, trafficLightRadius + 10, trafficLightDiameter);
+
+  fill(currentSpeedTarget == 0.5 && color(255, 155, 0) || trafficLightOffColor);
+  circle(trafficLightOffset, trafficLightFrameHeight / 2, trafficLightDiameter);
+
+  fill(currentSpeedTarget == 1 && color(0, 255, 0) || trafficLightOffColor);
+  circle(trafficLightOffset, trafficLightFrameHeight - trafficLightRadius - 10, trafficLightDiameter);
+
+  pop();
 
   // The moving cars
 
@@ -321,12 +426,11 @@ function draw() {
     let carElapsed = carSettings.Elapsed + currentVehicleSpeed;
     let carDuration = carSettings.Duration;
     let carBaseColor = carSettings.BaseColor;
-    let carName = carSettings.Name;
 
     push();
     translate(lerp(carStartX, carTargetX, carElapsed / carDuration), carY);
 
-    carFunctions[carName](carBaseColor);
+    carSettings.Create(carBaseColor);
 
     pop()
 
@@ -336,14 +440,16 @@ function draw() {
       carSettings.Elapsed = 0;
       carSettings.BaseColor = getRandomColor();
       carSettings.Duration = getRandomDuration(carSettings.SpeedMultiplier);
+      carSettings.Create = getRandomCarModel();
     }
   }
 }
 
 function keyPressed() {
   if (key === "Enter") {
-    vehicleTransitionElapsed = 0;
-    currentSpeedStart = currentVehicleSpeed;
-    currentSpeedTarget = (currentSpeedTarget <= 0 && 1 || currentSpeedTarget - 0.5);
+    switchTrafficLight();
+  }
+  if (key === " ") {
+    autoLightSwitch = !autoLightSwitch;
   }
 }
