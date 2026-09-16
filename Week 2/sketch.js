@@ -376,7 +376,7 @@ function draw() {
   // The back trees
 
   fill(0, 255, 0);
-  circle(500, lerp(100, 400, noise(frameCount / 60 / 2)), 50);
+  circle(500, lerp(100, 400, noise(frameCount / 60 * 0.5)), 50);
 
   // Some background stuff for auto light switching
 
