@@ -64,6 +64,12 @@ let cloudList = [
   }
 ];
 
+let treeTrunkWidth = 30;
+let treeTrunkHeight = 180;
+let treeLeavesSize = 50;
+let treePositionsBack = [[100, 635]];
+let treePositionsFront = [];
+
 let trafficLightFrameWidth = 40;
 let trafficLightFrameHeight = 140;
 let trafficLightDiameter = 30;
@@ -127,7 +133,7 @@ let carModels = [
   },
   {
     Weight: 10,
-    Create: function(baseColor) {
+    Create: function (baseColor) {
       scale(2);
       translate(0, -40);
       carModels[0].Create(baseColor);
@@ -163,6 +169,14 @@ function getRandomCarModel() {
       return carModel.Create;
     }
   }
+
+  /*
+  Failsafe, in case it fails to pick a car somehow
+  Then it will just return the first car's create function
+  Although, that usually doesn't happen
+  */
+
+  return carModels[0].Create;
 }
 
 function getLoopedT(t) {
@@ -173,8 +187,23 @@ function getQuadT(t) {
   return -pow(t * 2 - 1, 2) + 1;
 }
 
+function generateTrees(treePositions) {
+  for (let treePosition of treePositions) {
+    push();
+    translate(treePosition[0], treePosition[1]);
+
+    fill(0, 75, 0);
+    rect(0, -treeTrunkHeight, treeTrunkWidth, treeTrunkHeight);
+
+    pop();
+  }
+}
+
 function setup() {
   // Some variable initializing
+
+  let input = 360;
+  console.log(sin(input), cos(input));
 
   cycleDayColor = color(0, 235, 255);
   cycleMidPointColor = color(255, 200, 100);
@@ -375,8 +404,7 @@ function draw() {
 
   // The back trees
 
-  fill(0, 255, 0);
-  circle(500, lerp(100, 400, noise(frameCount / 60 * 0.5)), 50);
+  generateTrees(treePositionsBack);
 
   // Some background stuff for auto light switching
 
@@ -443,6 +471,10 @@ function draw() {
       carSettings.Create = getRandomCarModel();
     }
   }
+
+  // The trees front
+
+  generateTrees(treePositionsFront);
 }
 
 function keyPressed() {
