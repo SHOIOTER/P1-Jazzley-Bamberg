@@ -22,7 +22,7 @@ let sunCircleMaxRadius = sunCircleMax / 2;
 let sunStartX = -sunCircleMaxRadius - 1;
 let sunTargetX = null;
 let sunElapsed = 0;
-let sunDuration = 2000;
+let sunDuration = 1200;
 
 let starMinSize = 4;
 let starMaxSize = 8;
@@ -35,7 +35,7 @@ let moonRadius = moonSize / 2;
 let moonStartX = -moonRadius - 1;
 let moonTargetX = null;
 let moonElapsed = 0;
-let moonDuration = 2000;
+let moonDuration = 1200;
 
 let currentBackgroundColor = null;
 let isDayTime = true;
