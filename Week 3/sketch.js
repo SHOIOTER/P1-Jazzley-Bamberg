@@ -24,9 +24,14 @@ let buttonSpacing = buttonSize * 1.2;
 let buttonsOnSide = gridSize / 2 - 0.5;
 let buttonColors;
 let buttonHoverColor;
+let buttonNoLineColor;
 
 let playerAmount = 2;
 let currentPlayerID = 1;
+
+let backgroundTransitionStart;
+let backgroundTransitionDuration = 15;
+let backgroundTransitionElapsed = backgroundTransitionDuration;
 
 let textPosX = windowSize / 2;
 let textMinSize = 60;
@@ -36,7 +41,7 @@ let textMaxRotation;
 let textRotateSpeed = 0.04;
 
 let turnTextPosY = windowSize * (1 - boardScale) / 4;
-let turnTextDrawColor;
+let turnText;
 let playerNames = [
   "Blue",
   "Red"
@@ -53,20 +58,24 @@ let resetTextColliderY = resetTextPosY - resetTextColliderHeight / 2;
 let roundOver = false;
 let roundOverText;
 
+let checkWinConditionFunctions = [];
+
 function setup() {
   buttonColors = [
     color(200),
     color(0, 0, 255),
-    color(255, 0, 0),
-    color(50)
+    color(255, 0, 0)
   ];
   buttonHoverColor = color(100);
+  buttonNoLineColor = color(50);
+
+  backgroundTransitionStart = buttonColors[currentPlayerID];
 
   textMaxRotation = radians(6);
 
-  turnTextDrawColor = color(150);
+  turnTextColor = color(200);
 
-  resetTextColor = color(255, 100, 0);
+  resetTextColor = color(255, 155, 0);
   resetTextHoverColor = color(100);
 
   createCanvas(windowSize, windowSize);
@@ -91,19 +100,45 @@ function forEachButton(callback) {
 }
 
 function mouseInBounds(buttonPosX, buttonPosY, sizeX, sizeY) {
-  sizeX = (sizeX || buttonSize);
-  sizeY = (sizeY || buttonSize);
   return mouseX >= buttonPosX
-    && mouseX <= buttonPosX + sizeX
+    && mouseX <= buttonPosX + (sizeX || buttonSize)
     && mouseY >= buttonPosY
-    && mouseY <= buttonPosY + sizeY;
+    && mouseY <= buttonPosY + (sizeY || buttonSize);
+}
+
+function drawButtons(buttonPosX, buttonPosY, rowValues, x) {
+  let colorValue = rowValues[x];
+  if (colorValue === 0 && mouseInBounds(buttonPosX, buttonPosY)) {
+    fill(buttonHoverColor);
+  } else {
+    fill(buttonColors[colorValue] || buttonNoLineColor);
+  }
+  square(
+    buttonPosX,
+    buttonPosY,
+    buttonSize,
+    buttonCornerSize
+  );
+}
+
+function changeCurrentPlayer(newCurrentPlayerID) {
+  backgroundTransitionStart = buttonColors[currentPlayerID] || buttonNoLineColor;
+  backgroundTransitionElapsed = 0;
+  currentPlayerID = newCurrentPlayerID;
+}
+
+function clickButtons(buttonPosX, buttonPosY, rowValues, x) {
+  if (rowValues[x] == 0 && mouseInBounds(buttonPosX, buttonPosY)) {
+    rowValues[x] = currentPlayerID;
+    changeCurrentPlayer(currentPlayerID % playerAmount + 1)
+  }
 }
 
 function boardIsFull() {
   let boardFull = true;
 
-  for (rowValues of gridList) {
-    for (colorValue of rowValues) {
+  for (let rowValues of gridList) {
+    for (let colorValue of rowValues) {
       if (colorValue == 0) {
         boardFull = false;
         break;
@@ -117,27 +152,38 @@ function boardIsFull() {
   return boardFull;
 }
 
+function endRound(endText) {
+  for (let y = 0; y < gridSize; y++) {
+    let rowValues = gridList[y];
+    for (let x = 0; x < gridSize; x++) {
+      rowValues[x] = -1;
+    }
+  }
+  roundOverText = endText;
+  roundOver = true;
+}
+
 function draw() {
-  background(0, 155, 255);
+  let backgroundTransitionAlpha = 1;
+
+  if (backgroundTransitionElapsed < backgroundTransitionDuration) {
+    backgroundTransitionElapsed++;
+    backgroundTransitionAlpha = backgroundTransitionElapsed / backgroundTransitionDuration;
+  }
+
+  background(
+    lerpColor(
+      backgroundTransitionStart,
+      buttonColors[currentPlayerID] || buttonNoLineColor,
+      backgroundTransitionAlpha
+    )
+  );
 
   noStroke();
   fill(0);
   square(boardPos, boardPos, boardSize, 50);
 
-  forEachButton(function (buttonPosX, buttonPosY, rowValues, x) {
-    let colorValue = rowValues[x];
-    if (colorValue === 0 && mouseInBounds(buttonPosX, buttonPosY)) {
-      fill(buttonHoverColor);
-    } else {
-      fill(buttonColors[colorValue]);
-    }
-    square(
-      buttonPosX,
-      buttonPosY,
-      buttonSize,
-      buttonCornerSize
-    );
-  });
+  forEachButton(drawButtons);
 
   push();
   translate(textPosX, turnTextPosY);
@@ -147,11 +193,15 @@ function draw() {
 
   stroke(0);
   strokeWeight(5);
-  fill(roundOverText && turnTextDrawColor || buttonColors[currentPlayerID]);
+  fill(turnTextColor);
   textSize(lerp(textMinSize, textMaxSize, (sin(textScaleAlpha) + 1) / 2));
   rotate(textMaxRotation * cos(textRotateAlpha));
   textAlign(CENTER, CENTER);
-  text(roundOverText || "It's " + playerNames[currentPlayerID - 1] + "'s turn!", 0, 0);
+  text(
+    roundOver && roundOverText || "It's " + playerNames[currentPlayerID - 1] + "'s turn!",
+    0,
+    0
+  );
 
   pop();
 
@@ -181,38 +231,127 @@ function draw() {
 }
 
 function mouseClicked() {
-  forEachButton(function (buttonPosX, buttonPosY, rowValues, x) {
-    if (rowValues[x] == 0 && mouseInBounds(buttonPosX, buttonPosY)) {
-      rowValues[x] = currentPlayerID;
-      currentPlayerID = currentPlayerID % playerAmount + 1;
-    }
-  });
+  forEachButton(clickButtons);
 
-  if (boardIsFull()) {
-    if (roundOver) {
-      if (mouseInBounds(
-        resetTextColliderX,
-        resetTextColliderY,
-        resetTextColliderWidth,
-        resetTextColliderHeight
-      )) {
-        for (let rowValues of gridList) {
-          for (let x = 0; x < gridSize; x++) {
-            rowValues[x] = 0;
-          }
-        }
-        currentPlayerID = 1;
-        roundOver = false;
-        roundOverText = null;
-      }
-    } else {
+  if (roundOver) {
+    if (mouseInBounds(
+      resetTextColliderX,
+      resetTextColliderY,
+      resetTextColliderWidth,
+      resetTextColliderHeight
+    )) {
       for (let rowValues of gridList) {
         for (let x = 0; x < gridSize; x++) {
-          rowValues[x] = playerAmount + 1;
+          rowValues[x] = 0;
         }
       }
-      roundOver = true;
-      roundOverText = "Draw!";
+      changeCurrentPlayer(1);
+      roundOver = false;
+    }
+  } else {
+    for (let checkWinCondition of checkWinConditionFunctions) {
+      let winningPlayerID = checkWinCondition();
+      if (winningPlayerID) {
+        currentPlayerID = winningPlayerID;
+        endRound(playerNames[winningPlayerID - 1] + " has won!");
+        return;
+      }
+    }
+    if (boardIsFull()) {
+      currentPlayerID = -1;
+      endRound("Draw!");
     }
   }
 }
+
+// Horizontal checking
+
+checkWinConditionFunctions.push(function () {
+  let winningPlayerID;
+
+  for (let y = 0; y < gridSize; y++) {
+    let rowValues = gridList[y];
+    let firstColorValue = rowValues[0];
+    if (firstColorValue > 0) {
+      let lineFormed = true;
+      for (let x = 1; x < gridSize; x++) {
+        if (rowValues[x] != firstColorValue) {
+          lineFormed = false;
+          break
+        }
+      }
+      if (lineFormed) {
+        winningPlayerID = firstColorValue;
+        break;
+      }
+    }
+  }
+
+  return winningPlayerID;
+})
+
+// Vertical checking
+
+checkWinConditionFunctions.push(function () {
+  let winningPlayerID;
+
+  for (let x = 0; x < gridSize; x++) {
+    let firstColorValue = gridList[0][x]
+    if (firstColorValue > 0) {
+      let lineFormed = true;
+      for (let y = 1; y < gridSize; y++) {
+        if (gridList[y][x] != firstColorValue) {
+          lineFormed = false;
+          break;
+        }
+      }
+      if (lineFormed) {
+        winningPlayerID = firstColorValue;
+        break;
+      }
+    }
+  }
+
+  return winningPlayerID;
+})
+
+/// Diagonally checking
+
+checkWinConditionFunctions.push(function () {
+  let winningPlayerID;
+  let firstColorValue = gridList[0][0];
+
+  if (firstColorValue > 0) {
+    let lineFormed = true;
+
+    for (let y = 1; y < gridSize; y++) {
+      if (gridList[y][y] != firstColorValue) {
+        lineFormed = false;
+      }
+    }
+
+    if (lineFormed) {
+      winningPlayerID = firstColorValue;
+    }
+  }
+
+  if (!winningPlayerID) {
+    firstColorValue = gridList[0][gridStop];
+
+    if (firstColorValue > 0) {
+      let lineFormed = true;
+
+      for (let y = 1; y < gridSize; y++) {
+        if (gridList[y][abs(y - gridStop)] != firstColorValue) {
+          lineFormed = false;
+        }
+      }
+
+      if (lineFormed) {
+        winningPlayerID = firstColorValue;
+      }
+    }
+  }
+
+  return winningPlayerID;
+})
