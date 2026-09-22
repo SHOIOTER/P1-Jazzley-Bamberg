@@ -6,7 +6,7 @@ let boardSize = windowSize * boardScale;
 let boardOffset = boardSize / 2;
 let boardPos = windowOffset - boardOffset;
 
-let gridSize = 3;
+let gridSize = 4;
 let gridStop = gridSize - 1;
 let gridList = [];
 for (let y = 0; y < gridSize; y++) {

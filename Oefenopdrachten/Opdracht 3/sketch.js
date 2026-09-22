@@ -38,4 +38,12 @@ function draw() {
   rect(100, 100, 50, 100);
 
   pop();
+
+  push();
+
+  rotate(frameCount / 50);
+  textSize(100);
+  text("Hello!", 0, 0)
+
+  pop();
 }
