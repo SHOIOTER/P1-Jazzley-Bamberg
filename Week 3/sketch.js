@@ -145,7 +145,7 @@ function mouseInBounds(buttonPosX, buttonPosY, sizeX, sizeY) {
   return mouseX > buttonPosX
     && mouseX < buttonPosX + (sizeX || buttonSize)
     && mouseY > buttonPosY
-    && mouseY < buttonPosY + (sizeY || buttonSize);
+    && mouseY < buttonPosY + (sizeY || buttonSize)
 }
 
 // Displays the buttons on the board, also making sure they get the right color
@@ -220,7 +220,7 @@ function boardIsFull() {
 */
 
 function endRound(endText, noLineGridList) {
-  noLineGridList = noLineGridList || []
+  noLineGridList = noLineGridList || [];
 
   for (let y = 0; y < gridSize; y++) {
     let rowValues = gridList[y];
@@ -319,6 +319,8 @@ function draw() {
 }
 
 function mouseClicked() {
+  // Calls the clickButtons function for every button
+
   forEachButton(clickButtons);
 
   /*
