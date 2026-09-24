@@ -8,29 +8,26 @@ let boardPos = windowOffset - boardOffset;
 
 // This controls the side of the board, a bigger number means more buttons
 
-let gridSize = 3;
-let gridStop = gridSize - 1;
-let gridList = [];
-for (let y = 0; y < gridSize; y++) {
-  let rowValues = [];
-  for (let x = 0; x < gridSize; x++) {
-    rowValues[x] = 0;
-  }
-  gridList[y] = rowValues;
-}
+let minGridSize = 3;
+let maxGridSize = 6;
+let gridSize;
+let gridStop;
+let gridList;
 
-let buttonSize = boardSize / (gridSize * 1.35);
-let buttonOffset = windowOffset - buttonSize / 2;
-let buttonCornerSize = buttonSize / 6;
-let buttonSpacing = buttonSize * 1.2;
-let buttonsOnSide = gridSize / 2 - 0.5;
+let buttonSize;
+let buttonOffset;
+let buttonCornerSize;
+let buttonSpacing;
+let buttonsOnSide;
 let buttonColors;
 let buttonHoverColor;
 let buttonNoLineColor;
 
 // This controls how many players there are
 
-let playerAmount = 2;
+let minPlayers = 2;
+let maxPlayers = 4;
+let playerAmount;
 let currentPlayerID = 1;
 
 let backgroundTransitionStart;
@@ -38,15 +35,17 @@ let backgroundTransitionDuration = 15;
 let backgroundTransitionElapsed = backgroundTransitionDuration;
 
 let textPosX = windowSize / 2;
-let textMinSize = 60;
-let textMaxSize = 80;
 let textScaleSpeed = 0.04;
 let textMaxRotation;
 let textRotateSpeed = 0.04;
+let textHoverColor;
 
+let turnTextMinSize = 60;
+let turnTextMaxSize = 80;
 let turnTextPosY = windowSize * (1 - boardScale) / 4;
 let turnTextBounceStart = turnTextPosY * 2;
 let turnTextBounceDuration = 60;
+let turnTextColor;
 let turnText;
 
 /*
@@ -57,21 +56,30 @@ let turnText;
 
 let playerNames = [
   "Blue",
-  "Red"
+  "Red",
+  "Green",
+  "Pink",
 ];
 
-let resetTextPosY = windowSize - turnTextPosY;
-let resetTextColor;
-let resetTextHoverColor;
-let resetTextColliderWidth = 400;
-let resetTextColliderHeight = 50;
-let resetTextColliderX = textPosX - resetTextColliderWidth / 2;
-let resetTextColliderY = resetTextPosY - resetTextColliderHeight / 2;
-let resetTextFloatAmplitude = turnTextPosY / 3;
-let resetTextFloatDuration = 90;
+let endTextMinSize = 30;
+let endTextMaxSize = 40;
+let endTextPosY = windowSize - turnTextPosY;
+let endTextFloatAmplitude = turnTextPosY / 2;
+let endTextFloatSpeed = 0.02;
+let endTextHeight = 0;
+let endTextHalfHeight = 0;
 
-let roundOver = false;
-let roundOverText;
+let resetTextString = "Restart round";
+let resetTextColor;
+let resetTextPosX = textPosX - 150;
+let resetTextPosY = 0;
+let resetTextWidth = 0;
+
+let returnTextString = "Return to menu";
+let returnTextColor;
+let returnTextPosX = textPosX + 150;
+let returnTextPosY = 0;
+let returnTextWidth = 0;
 
 let checkWinConditionFunctions = [];
 
@@ -79,38 +87,66 @@ let clickSound;
 let drawSound;
 let winSounds;
 let restartSound;
+let backToMenuSound;
+let startGameSound;
 
-// Initializing some variables in the setup function
+let onMenu = true;
+let roundOver = false;
+let roundOverText;
 
-function preload() {
-  clickSound = loadSound("./Assets/Button_Click.mp3");
-  drawSound = loadSound("./Assets/Draw_Sound.mp3");
-  winSounds = [
-    loadSound("./Assets/Green_Giant.mp3"),
-    loadSound("./Assets/Heheheha.mp3")
-  ];
-  restartSound = loadSound("./Assets/Green_Giant.mp3");
-}
+let menuBackgroundColor;
 
-function setup() {
-  buttonColors = [
-    color(200),
-    color(0, 0, 255),
-    color(255, 0, 0)
-  ];
-  buttonHoverColor = color(100);
-  buttonNoLineColor = color(50);
+let gameTitleTextString = "Tic Tac Toe";
+let gameTitleTextSize = 175;
+let gameTitleTextRotateSpeed = 0.015;
+let gameTitleTextPosY = 225;
+let gameTitleTextColor;
 
-  backgroundTransitionStart = buttonColors[currentPlayerID];
+let sliderTextFloatAmplitude = 25;
+let sliderTextFloatSpeed = 0.02;
+let sliderTextSize = 50;
+let sliderPosX = windowOffset / 2;
 
-  textMaxRotation = radians(6);
+let gridSizeSlider;
+let gridSizeSliderPosY = windowOffset - 25;
 
-  turnTextColor = color(0, 200, 255);
+let gridSizeTextPosY = gridSizeSliderPosY - 62.5;
+let gridSizeTextColor;
 
-  resetTextColor = color(255, 200, 0);
-  resetTextHoverColor = color(150);
+let playerAmountSlider;
+let playerAmountSliderPosY = windowOffset + 125;
 
-  createCanvas(windowSize, windowSize);
+let playerAmountTextPosY = playerAmountSliderPosY - 62.5;
+let playerAmountTextColor;
+
+let startTextString = "Start game!";
+let startTextScaleSpeed = 0.015;
+let startTextMinSize = 100;
+let startTextMaxSize = 125;
+let startTextPosY = windowSize - 200;
+let startTextWidth = 0;
+let startTextHeight = 0;
+let startTextColor;
+
+// This calculates everything in order for the sized board to work
+
+function calculateButtons(size) {
+  gridSize = size;
+  gridStop = gridSize - 1;
+  gridList = [];
+  for (let y = 0; y < gridSize; y++) {
+    let rowValues = [];
+    for (let x = 0; x < gridSize; x++) {
+      rowValues[x] = 0;
+    }
+    gridList[y] = rowValues;
+  }
+
+  buttonSize = boardSize / (gridSize * 1.35);
+  buttonOffset = windowOffset - buttonSize / 2;
+  buttonCornerSize = buttonSize / 6;
+  buttonSpacing = buttonSize * 1.2;
+  buttonsOnSide = gridSize / 2 - 0.5;
 }
 
 // Calculates the spacing for the button, used to place every specific button
@@ -152,11 +188,13 @@ function mouseInBounds(buttonPosX, buttonPosY, sizeX, sizeY) {
 
 function drawButtons(buttonPosX, buttonPosY, rowValues, x) {
   let colorValue = rowValues[x];
+
   if (colorValue === 0 && mouseInBounds(buttonPosX, buttonPosY)) {
     fill(buttonHoverColor);
   } else {
     fill(buttonColors[colorValue] || buttonNoLineColor);
   }
+
   square(
     buttonPosX,
     buttonPosY,
@@ -170,9 +208,11 @@ function drawButtons(buttonPosX, buttonPosY, rowValues, x) {
    Also resets the backgroundlerping values, so it will lerp towards the new player color
 */
 
-function changeCurrentPlayer(newCurrentPlayerID) {
-  backgroundTransitionStart = buttonColors[currentPlayerID] || buttonNoLineColor;
-  backgroundTransitionElapsed = 0;
+function changeCurrentPlayer(newCurrentPlayerID, noBackgroundLerp) {
+  if (!noBackgroundLerp) {
+    backgroundTransitionStart = buttonColors[currentPlayerID] || buttonNoLineColor;
+    backgroundTransitionElapsed = 0;
+  }
   currentPlayerID = newCurrentPlayerID;
 }
 
@@ -238,127 +278,366 @@ function endRound(endText, noLineGridList) {
   (winSounds[currentPlayerID - 1] || drawSound).play();
 }
 
+// Calculates an alpha that bounces
+
 function getQuadBounceAlpha(t) {
   return -pow(t * 2 - 1, 2) + 1;
 }
 
-function getQuadFloatAmplitude(t) {
-  return abs(t * 2 - 1) * 2 - 1;
+function resetRound(noBackgroundLerp) {
+  changeCurrentPlayer(1, noBackgroundLerp);
+  roundOver = false;
+}
+
+// Initializing some variables in the setup function
+
+function preload() {
+  clickSound = loadSound("./Assets/ButtonClick.mp3");
+  clickSound.setVolume(0.3);
+
+  drawSound = loadSound("./Assets/Draw.mp3");
+  drawSound.setVolume(0.5);
+
+  winSounds = [
+    loadSound("./Assets/WinPlayer1.mp3"),
+    loadSound("./Assets/WinPlayer2.mp3"),
+    loadSound("./Assets/WinPlayer3.mp3"),
+    loadSound("./Assets/WinPlayer4.mp3")
+  ];
+
+  winSounds[0].setVolume(0.1);
+  winSounds[1].setVolume(0.1);
+  winSounds[2].setVolume(0.4);
+  winSounds[3].setVolume(0.05);
+
+  restartSound = loadSound("./Assets/RestartGame.mp3");
+  restartSound.setVolume(0.4);
+
+  backToMenuSound = loadSound("./Assets/BackToMenu.mp3");
+  backToMenuSound.setVolume(0.3);
+
+  startGameSound = loadSound("./Assets/GameStart.mp3");
+  startGameSound.setVolume(0.05);
+}
+
+function setup() {
+
+
+  buttonColors = [
+    color(200),
+    color(0, 0, 255),
+    color(255, 0, 0),
+    color(0, 185, 0),
+    color(255, 0, 255)
+  ];
+  buttonHoverColor = color(100);
+  buttonNoLineColor = color(50);
+
+  backgroundTransitionStart = buttonColors[currentPlayerID];
+
+  textMaxRotation = radians(6);
+  textHoverColor = color(150);
+
+  turnTextColor = color(0, 200, 255);
+
+  resetTextColor = color(255, 200, 0);
+
+  returnTextColor = color(255, 0, 255);
+
+  menuBackgroundColor = color(100, 200, 150);
+
+  gameTitleTextColor = color(75, 150, 75);
+
+  gridSizeSlider = createSlider(minGridSize, maxGridSize, minGridSize, 1);
+  gridSizeSlider.position(sliderPosX, gridSizeSliderPosY);
+  gridSizeSlider.size(windowOffset);
+  gridSizeSlider.input(function () {
+    clickSound.play();
+  });
+
+  gridSizeTextColor = color(155, 0, 255);
+
+  playerAmountSlider = createSlider(minPlayers, maxPlayers, minPlayers, 1);
+  playerAmountSlider.position(sliderPosX, playerAmountSliderPosY);
+  playerAmountSlider.size(windowOffset);
+  playerAmountSlider.input(function () {
+    clickSound.play();
+  });
+
+  playerAmountTextColor = color(255, 0, 155);
+
+  startTextColor = color(200, 200, 0);
+
+  createCanvas(windowSize, windowSize);
+  calculateButtons(gridSizeSlider.value());
 }
 
 function draw() {
-  let backgroundTransitionAlpha = 1;
+  // If the menu is on, it will draw the menu instead
 
-  if (backgroundTransitionElapsed < backgroundTransitionDuration) {
-    backgroundTransitionElapsed++;
-    backgroundTransitionAlpha = backgroundTransitionElapsed / backgroundTransitionDuration;
-  }
+  if (onMenu) {
+    background(menuBackgroundColor);
 
-  background(
-    lerpColor(
-      backgroundTransitionStart,
-      buttonColors[currentPlayerID] || buttonNoLineColor,
-      backgroundTransitionAlpha
-    )
-  );
+    push();
+    translate(textPosX, gameTitleTextPosY);
 
-  noStroke();
-  fill(0);
-  square(boardPos, boardPos, boardSize, 50);
+    stroke(0);
+    strokeWeight(5);
 
-  forEachButton(drawButtons);
+    fill(gameTitleTextColor);
+    textSize(gameTitleTextSize);
+    rotate(cos(frameCount * gameTitleTextRotateSpeed) * textMaxRotation);
+    textAlign(CENTER, CENTER);
+    text(gameTitleTextString, 0, 0);
 
-  push();
-  translate(textPosX, lerp(turnTextBounceStart, turnTextPosY, getQuadBounceAlpha(frameCount % turnTextBounceDuration / turnTextBounceDuration)));
+    pop();
 
-  let textScaleAlpha = frameCount * textScaleSpeed;
-  let textRotateAlpha = frameCount * textRotateSpeed;
+    let sliderTextFloatAlpha = frameCount * sliderTextFloatSpeed;
 
-  stroke(0);
-  strokeWeight(5);
-  fill(turnTextColor);
-  textSize(lerp(textMinSize, textMaxSize, (sin(textScaleAlpha) + 1) / 2));
-  rotate(textMaxRotation * cos(textRotateAlpha));
-  textAlign(CENTER, CENTER);
-  text(
-    roundOver && roundOverText || "It's " + playerNames[currentPlayerID - 1] + "'s turn!",
-    0,
-    0
-  );
-
-  pop();
-
-  // If the round is over, the reset button will appear
-
-  if (roundOver) {
     push();
     translate(
       textPosX,
-      resetTextPosY + getQuadFloatAmplitude(frameCount % resetTextFloatDuration / resetTextFloatDuration) * resetTextFloatAmplitude
+      gridSizeTextPosY + sin(sliderTextFloatAlpha) * sliderTextFloatAmplitude
     );
 
     stroke(0);
     strokeWeight(5);
-    if (mouseInBounds(
-      resetTextColliderX,
-      resetTextColliderY,
-      resetTextColliderWidth,
-      resetTextColliderHeight
-    )) {
-      fill(resetTextHoverColor);
-    } else {
-      fill(resetTextColor);
-    }
-    textSize(lerp(textMinSize, textMaxSize, (cos(textScaleAlpha) + 1) / 2));
-    rotate(textMaxRotation * sin(textRotateAlpha));
+
+    fill(gridSizeTextColor);
+    textSize(sliderTextSize);
     textAlign(CENTER, CENTER);
-    text("New round!", 0, 0);
+    text("Level " + (gridSizeSlider.value() - 2) + " board", 0, 0);
 
     pop();
+
+    push();
+    translate(
+      textPosX,
+      playerAmountTextPosY + cos(sliderTextFloatAlpha) * sliderTextFloatAmplitude
+    );
+
+    stroke(0);
+    strokeWeight(5);
+
+    fill(playerAmountTextColor);
+    textSize(sliderTextSize);
+    textAlign(CENTER, CENTER);
+    text(playerAmountSlider.value() + " Players", 0, 0);
+
+    pop();
+
+    push();
+    translate(textPosX, startTextPosY);
+
+    stroke(0);
+    strokeWeight(5);
+
+    if (mouseInBounds(
+      textPosX - startTextWidth / 2,
+      startTextPosY - startTextHeight / 2,
+      startTextWidth,
+      startTextHeight
+    )) {
+      fill(textHoverColor);
+    } else {
+      fill(startTextColor);
+    }
+
+    textSize(lerp(startTextMinSize, startTextMaxSize, (sin(frameCount * startTextScaleSpeed) + 1) / 2));
+    textAlign(CENTER, CENTER);
+    text(startTextString, 0, 0);
+
+    startTextWidth = textWidth(startTextString);
+    startTextHeight = textDescent() + textAscent();
+
+    pop();
+  } else {
+    let backgroundTransitionAlpha = 1;
+
+    if (backgroundTransitionElapsed < backgroundTransitionDuration) {
+      backgroundTransitionElapsed++;
+      backgroundTransitionAlpha = backgroundTransitionElapsed / backgroundTransitionDuration;
+    }
+
+    background(
+      lerpColor(
+        backgroundTransitionStart,
+        buttonColors[currentPlayerID] || buttonNoLineColor,
+        backgroundTransitionAlpha
+      )
+    );
+
+    strokeWeight(5);
+    fill(100);
+    square(boardPos, boardPos, boardSize, 50);
+
+    forEachButton(drawButtons);
+
+    push();
+    translate(textPosX, lerp(turnTextBounceStart, turnTextPosY, getQuadBounceAlpha(frameCount % turnTextBounceDuration / turnTextBounceDuration)));
+
+    let textScaleAlpha = frameCount * textScaleSpeed;
+    let textRotateAlpha = frameCount * textRotateSpeed;
+
+    stroke(0);
+    strokeWeight(5);
+    fill(turnTextColor);
+    textSize(lerp(turnTextMinSize, turnTextMaxSize, (sin(textScaleAlpha) + 1) / 2));
+    rotate(textMaxRotation * cos(textRotateAlpha));
+    textAlign(CENTER, CENTER);
+    text(
+      roundOver && roundOverText || "It's " + playerNames[currentPlayerID - 1] + "'s turn!",
+      0,
+      0
+    );
+
+    pop();
+
+    // If the round is over, the reset button will appear, along with the menu button
+
+    if (roundOver) {
+
+      // The reset button
+
+      push();
+
+      let textFloatAlpha = frameCount * endTextFloatSpeed;
+      resetTextPosY = endTextPosY + sin(textFloatAlpha) * endTextFloatAmplitude;
+      let endTextSize = lerp(endTextMinSize, endTextMaxSize, (cos(textScaleAlpha) + 1) / 2);
+      let endTextRotation = textMaxRotation * sin(textRotateAlpha);
+
+      translate(resetTextPosX, resetTextPosY);
+
+      stroke(0);
+      strokeWeight(5);
+
+      if (mouseInBounds(
+        resetTextPosX - resetTextWidth / 2,
+        resetTextPosY - endTextHalfHeight,
+        resetTextWidth,
+        endTextHeight
+      )) {
+        fill(textHoverColor);
+      } else {
+        fill(resetTextColor);
+      }
+
+      textSize(endTextSize);
+      rotate(endTextRotation);
+      textAlign(CENTER, CENTER);
+      text(resetTextString, 0, 0);
+
+      resetTextWidth = textWidth(resetTextString);
+
+      pop();
+
+      // The menu button
+
+      push();
+
+      returnTextPosY = endTextPosY + cos(textFloatAlpha) * endTextFloatAmplitude;
+
+      translate(returnTextPosX, returnTextPosY);
+
+      stroke(0);
+      strokeWeight(5);
+
+      if (mouseInBounds(
+        returnTextPosX - returnTextWidth / 2,
+        returnTextPosY - endTextHalfHeight,
+        returnTextWidth,
+        endTextHeight
+      )) {
+        fill(textHoverColor);
+      } else {
+        fill(returnTextColor);
+      }
+
+      textSize(endTextSize);
+      rotate(endTextRotation);
+      textAlign(CENTER, CENTER);
+      text(returnTextString, 0, 0);
+
+      returnTextWidth = textWidth(returnTextString);
+      endTextHeight = textDescent() + textAscent();
+      endTextHalfHeight = endTextHeight / 2;
+
+      pop();
+    }
   }
 }
 
 function mouseClicked() {
-  // Calls the clickButtons function for every button
+  // If the menu is supposed to show, it will check if the start button gets clicked
 
-  forEachButton(clickButtons);
-
-  /*
-     If the round is over it will check if the reset button is clicked
-     Else it will check if a line win condition has formed
-  */
-
-  if (roundOver) {
+  if (onMenu) {
     if (mouseInBounds(
-      resetTextColliderX,
-      resetTextColliderY,
-      resetTextColliderWidth,
-      resetTextColliderHeight
+      textPosX - startTextWidth / 2,
+      startTextPosY - startTextHeight / 2,
+      startTextWidth,
+      startTextHeight
     )) {
-      for (let rowValues of gridList) {
-        for (let x = 0; x < gridSize; x++) {
-          rowValues[x] = 0;
-        }
-      }
-      changeCurrentPlayer(1);
-      roundOver = false;
-      restartSound.play();
+      calculateButtons(gridSizeSlider.value());
+      playerAmount = playerAmountSlider.value();
+      gridSizeSlider.hide();
+      playerAmountSlider.hide();
+      onMenu = false;
+      startGameSound.play();
     }
   } else {
-    for (let checkWinCondition of checkWinConditionFunctions) {
-      let [winningPlayerID, noLineGridList] = checkWinCondition();
-      if (winningPlayerID) {
-        currentPlayerID = winningPlayerID;
-        endRound(
-          playerNames[winningPlayerID - 1] + " has won!",
-          noLineGridList
-        );
-        return;
+    // Calls the clickButtons function for every button
+
+    forEachButton(clickButtons);
+
+    /*
+       If the round is over it will check if the reset button is clicked
+       Else it will check if a line win condition has formed
+    */
+
+    if (roundOver) {
+      if (mouseInBounds(
+        resetTextPosX - resetTextWidth / 2,
+        resetTextPosY - endTextHalfHeight,
+        resetTextWidth,
+        endTextHeight
+      )) {
+        for (let rowValues of gridList) {
+          for (let x = 0; x < gridSize; x++) {
+            rowValues[x] = 0;
+          }
+        }
+        resetRound();
+        restartSound.play();
       }
-    }
-    if (boardIsFull()) {
-      currentPlayerID = -1;
-      endRound("Draw!");
+
+      if (mouseInBounds(
+        returnTextPosX - returnTextWidth / 2,
+        returnTextPosY - endTextHalfHeight,
+        returnTextWidth,
+        endTextHeight
+      )) {
+        onMenu = true;
+        gridSizeSlider.show();
+        playerAmountSlider.show();
+        backToMenuSound.play();
+        resetRound(true);
+      }
+    } else {
+      for (let checkWinCondition of checkWinConditionFunctions) {
+        let [winningPlayerID, noLineGridList] = checkWinCondition();
+        if (winningPlayerID) {
+          currentPlayerID = winningPlayerID;
+          endRound(
+            playerNames[winningPlayerID - 1] + " has won!",
+            noLineGridList
+          );
+          return;
+        }
+      }
+      if (boardIsFull()) {
+        currentPlayerID = -1;
+        endRound("Draw!");
+      }
     }
   }
 }
@@ -395,7 +674,7 @@ checkWinConditionFunctions.push(function () {
   }
 
   return [winningPlayerID, noLineGridList];
-})
+});
 
 // Vertical checking
 
@@ -433,7 +712,7 @@ checkWinConditionFunctions.push(function () {
   }
 
   return [winningPlayerID, noLineGridList];
-})
+});
 
 /// Diagonally checking
 
@@ -493,4 +772,4 @@ checkWinConditionFunctions.push(function () {
   }
 
   return [winningPlayerID, noLineGridList];
-})
+});
