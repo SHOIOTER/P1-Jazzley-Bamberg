@@ -321,8 +321,6 @@ function preload() {
 }
 
 function setup() {
-
-
   buttonColors = [
     color(200),
     color(0, 0, 255),
@@ -369,7 +367,6 @@ function setup() {
   startTextColor = color(200, 200, 0);
 
   createCanvas(windowSize, windowSize);
-  calculateButtons(gridSizeSlider.value());
 }
 
 function draw() {
