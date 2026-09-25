@@ -296,7 +296,7 @@ function preload() {
   clickSound.setVolume(0.3);
 
   drawSound = loadSound("./Assets/Draw.mp3");
-  drawSound.setVolume(0.5);
+  drawSound.setVolume(0.4);
 
   winSounds = [
     loadSound("./Assets/WinPlayer1.mp3"),
@@ -306,7 +306,7 @@ function preload() {
   ];
 
   winSounds[0].setVolume(0.1);
-  winSounds[1].setVolume(0.1);
+  winSounds[1].setVolume(0.2);
   winSounds[2].setVolume(0.4);
   winSounds[3].setVolume(0.05);
 
@@ -317,7 +317,7 @@ function preload() {
   backToMenuSound.setVolume(0.3);
 
   startGameSound = loadSound("./Assets/GameStart.mp3");
-  startGameSound.setVolume(0.05);
+  startGameSound.setVolume(0.08);
 }
 
 function setup() {
@@ -328,7 +328,7 @@ function setup() {
     color(0, 185, 0),
     color(255, 0, 255)
   ];
-  buttonHoverColor = color(100);
+  buttonHoverColor = color(150);
   buttonNoLineColor = color(50);
 
   backgroundTransitionStart = buttonColors[currentPlayerID];
@@ -419,7 +419,7 @@ function draw() {
     fill(playerAmountTextColor);
     textSize(sliderTextSize);
     textAlign(CENTER, CENTER);
-    text(playerAmountSlider.value() + " Players", 0, 0);
+    text(playerAmountSlider.value() + " players", 0, 0);
 
     pop();
 
@@ -508,6 +508,14 @@ function draw() {
       stroke(0);
       strokeWeight(5);
 
+      textSize(endTextSize);
+      rotate(endTextRotation);
+      textAlign(CENTER, CENTER);
+
+      resetTextWidth = textWidth(resetTextString);
+      endTextHeight = textDescent() + textAscent();
+      endTextHalfHeight = endTextHeight / 2;
+
       if (mouseInBounds(
         resetTextPosX - resetTextWidth / 2,
         resetTextPosY - endTextHalfHeight,
@@ -519,12 +527,7 @@ function draw() {
         fill(resetTextColor);
       }
 
-      textSize(endTextSize);
-      rotate(endTextRotation);
-      textAlign(CENTER, CENTER);
       text(resetTextString, 0, 0);
-
-      resetTextWidth = textWidth(resetTextString);
 
       pop();
 
@@ -539,6 +542,12 @@ function draw() {
       stroke(0);
       strokeWeight(5);
 
+      textSize(endTextSize);
+      rotate(endTextRotation);
+      textAlign(CENTER, CENTER);
+
+      returnTextWidth = textWidth(returnTextString);
+
       if (mouseInBounds(
         returnTextPosX - returnTextWidth / 2,
         returnTextPosY - endTextHalfHeight,
@@ -550,14 +559,7 @@ function draw() {
         fill(returnTextColor);
       }
 
-      textSize(endTextSize);
-      rotate(endTextRotation);
-      textAlign(CENTER, CENTER);
       text(returnTextString, 0, 0);
-
-      returnTextWidth = textWidth(returnTextString);
-      endTextHeight = textDescent() + textAscent();
-      endTextHalfHeight = endTextHeight / 2;
 
       pop();
     }
@@ -598,6 +600,8 @@ function mouseClicked() {
         resetTextWidth,
         endTextHeight
       )) {
+        // Clears all the color values from the board
+
         for (let rowValues of gridList) {
           for (let x = 0; x < gridSize; x++) {
             rowValues[x] = 0;
@@ -606,6 +610,8 @@ function mouseClicked() {
         resetRound();
         restartSound.play();
       }
+
+      // When clicked, it will go back to the menu screen
 
       if (mouseInBounds(
         returnTextPosX - returnTextWidth / 2,
@@ -711,7 +717,7 @@ checkWinConditionFunctions.push(function () {
   return [winningPlayerID, noLineGridList];
 });
 
-/// Diagonally checking
+// Diagonally checking
 
 checkWinConditionFunctions.push(function () {
   let winningPlayerID;
