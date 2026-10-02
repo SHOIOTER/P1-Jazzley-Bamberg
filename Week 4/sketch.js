@@ -1,11 +1,55 @@
-const WAVE_AMPLITUDE = 250;
-const WAVE_FREQUENCY = 0.35;
-const WAVE_SPEED = 0.002;
+const WINDOW_WIDTH = 800;
+const WINDOW_HEIGHT = 600;
+
+const ASPECT_RATIO = WINDOW_WIDTH / WINDOW_HEIGHT;
+const NEAR = 0.1;
+const FAR = 100000
+let fieldOfView;
+
+// Controls how the wave grid behaves (including slider behaviour)
+
+let minWaveAmplitude = 100;
+let maxWaveAmplitude = 1000;
+let stepWaveAmplitude = 50;
+let waveAmplitude = minWaveAmplitude;
+
+let minWaveFrequency = 0.1;
+let maxWaveFrequency = 1;
+let stepWaveFrequency = 0.05;
+let waveFrequency = minWaveFrequency;
+
+let minWaveSpeed = 0.001;
+let maxWaveSpeed = 0.01;
+let stepWaveSpeed = 0.001;
+let waveSpeed = minWaveSpeed;
+
+let sliderOriginX = 50;
+let sliderOriginY = WINDOW_HEIGHT;
+let sliderOffset = 75;
+let sliderTextOffset = 100;
+let sliderTextSize = 100;
+let sliderTextFont;
+
+let amplitudeSlider;
+let amplitudeSliderY = sliderOriginY - sliderOffset;
+let amplitudeSliderTextY = amplitudeSliderY - sliderTextOffset - 1250;
+
+let frequencySlider;
+let frequencySliderY = sliderOriginY - sliderOffset * 2;
+let frequencySliderTextY = frequencySliderY - sliderTextOffset * 2 - 1250;
+
+let speedSlider;
+let speedSliderY = sliderOriginY - sliderOffset * 3;
+let speedSliderTextY = speedSliderY - sliderTextOffset * 3 - 1250;
+
+// Controls how the wave grid is built
 
 const WAVE_PART_SIZE = 100;
 const WAVE_GRID_ORIGIN_Y = 0;
 const WAVE_GRID_WIDTH = 25;
 const WAVE_GRID_HEIGHT = 25;
+
+// These are for the triangle drawing, that loop has to stop earlier
 
 const WAVE_GRID_WIDTH_STOP = WAVE_GRID_WIDTH - 1;
 const WAVE_GRID_HEIGHT_STOP = WAVE_GRID_HEIGHT - 1;
@@ -13,8 +57,13 @@ const WAVE_GRID_HEIGHT_STOP = WAVE_GRID_HEIGHT - 1;
 const WAVE_GRID_WIDTH_OFFSET = WAVE_GRID_WIDTH * WAVE_PART_SIZE / 2;
 const WAVE_GRID_HEIGHT_OFFSET = WAVE_GRID_HEIGHT * WAVE_PART_SIZE / 2;
 
+// These variable are used to check if you double click
+
 let waveColorLastChanged = 0;
 let waveColorChangeThreshold = 200;
+
+// This controls what color the waves have
+
 let wavePartLowColor;
 let wavePartHighColor;
 
@@ -24,19 +73,28 @@ let shapeMaxSize = 225;
 let shapeMinDuration = 600;
 let shapeMaxDuration = 1200;
 
+/*
+  lastShapeGeneration holds when it was the last time a shape has been generated
+  shapeGenerationInterval is the interval the shapes keep generating if the user holds their Backspace key
+  shapesPerGeneration just controls how many shapes are generated per interval
+*/
+
 let lastShapeGeneration = 0;
 let shapeGenerationInterval = 100;
 let shapesPerGeneration = 3;
 
-let shapeMinPosX = -WAVE_GRID_WIDTH_OFFSET;
-let shapeMaxPosX = WAVE_GRID_WIDTH_OFFSET - WAVE_PART_SIZE;
-let shapeMinPosZ = -WAVE_GRID_HEIGHT_OFFSET;
-let shapeMaxPosZ = WAVE_GRID_HEIGHT_OFFSET - WAVE_PART_SIZE;
+// The wave grid holds a 2 dimensional array, contains arrays that are filled with information
 
 let waveGrid = [];
+
+/*
+  These hold the active (and sometimes inactive) shapes, so I can display then in the draw
+  Shapes get added when holding Backspace, as stated before
+*/
+
 let shapeList = [];
 
-// These are the functions that actually create the desired shape
+// These are the functions that actually create the desired shape, all of them receive a size parameter that controls the size
 
 let shapeCreators = [
   function (size) {
@@ -59,6 +117,8 @@ let shapeCreators = [
 let shapeAmount = shapeCreators.length;
 let shapeGenerationSound;
 
+// Some variables that control the behavior of the solar system
+
 const STAR_AXIS_SPEED = 0.0005;
 const STAR_ORIGIN_X = 0;
 const STAR_ORIGIN_Y = 0;
@@ -71,6 +131,7 @@ const PLANET_BODY_RADIUS = 50;
 const PLANET_HOVER_AMPLITUDE = 50;
 const PLANET_HOVER_SPEED = 0.001;
 const PLANET_AXIS_SPEED = 0.001;
+const PLANET_AXIS_ANGLE = 0.35;
 
 const MOON_ORBIT_RADIUS = 100;
 const MOON_ORBIT_SPEED = 0.003;
@@ -78,22 +139,24 @@ const MOON_BODY_RADIUS = 25;
 const MOON_HOVER_AMPLITUDE = 50;
 const MOON_HOVER_SPEED = 0.001;
 
-const MOON_MAN_SCALE = 100;
+const MOON_MAN_SCALE = 20;
 const MOON_MAN_ORIGIN_Y = -MOON_BODY_RADIUS;
 const MOON_MAN_JUMP_DURATION = 600;
 const MOON_MAN_JUMP_HEIGHT = 100;
+const MOON_MAN_ROTATION_SPEED = 0.025;
 
-let planetAxisAngle;
+// The textures of the sun, earth and moon
 
 let starTexture;
 let planetTexture;
 let moonTexture;
 
+// Controls some behaviour of the moon man
+
 let moonManJumpElapsed = MOON_MAN_JUMP_DURATION;
 let moonManCurrentRotation = 0;
-let moonManRotationSpeed = 0.025;
-let moonManModel;
 let moonManTexture;
+let moonManModel;
 let moonManJumpSound;
 
 const PLANET_MIN_SIZE = 25;
@@ -117,13 +180,13 @@ let currentScene = 0;
 let possibleScenes = [
   function () {
     let now = millis();
-    let waveAlpha = now * WAVE_SPEED;
+    let waveAlpha = now * waveSpeed;
 
     for (let columnValues of waveGrid) {
       for (let waveInfo of columnValues) {
-        let sineValue = sin(waveAlpha + waveInfo.seedX) * sin(waveAlpha + waveInfo.seedZ);
+        let sineValue = sin(waveAlpha + waveInfo.posX * waveFrequency) * sin(waveAlpha + waveInfo.posZ * waveFrequency);
         waveInfo.currentColor = lerpColor(wavePartLowColor, wavePartHighColor, (sineValue + 1) / 2);
-        waveInfo.currentY = WAVE_GRID_ORIGIN_Y - sineValue * WAVE_AMPLITUDE;
+        waveInfo.currentY = WAVE_GRID_ORIGIN_Y - sineValue * waveAmplitude;
       }
     }
 
@@ -174,6 +237,17 @@ let possibleScenes = [
     for (let shape of shapeList) {
       shape.display();
     }
+
+    push();
+
+    fill(220);
+    textFont(sliderTextFont);
+    textSize(sliderTextSize);
+    text("Amplitude: " + waveAmplitude, sliderOriginX, amplitudeSliderTextY);
+    text("Frequency: " + waveFrequency, sliderOriginX, frequencySliderTextY);
+    text("Speed: " + waveSpeed, sliderOriginX, speedSliderTextY);
+
+    pop();
   },
   function () {
     let now = millis();
@@ -200,7 +274,7 @@ let possibleScenes = [
     push();
 
     translate(planetPosX, planetPosY, planetPosZ);
-    rotateX(sinPlanetOrbit * planetAxisAngle);
+    rotateX(sinPlanetOrbit * PLANET_AXIS_ANGLE);
     rotateY(now * PLANET_AXIS_SPEED);
 
     texture(planetTexture);
@@ -209,8 +283,8 @@ let possibleScenes = [
     pop();
 
     if (moonManJumpElapsed < MOON_MAN_JUMP_DURATION) {
-      moonManJumpElapsed += deltaTime;
-      moonManCurrentRotation += moonManRotationSpeed * deltaTime;
+      moonManJumpElapsed = min(moonManJumpElapsed + deltaTime, MOON_MAN_JUMP_DURATION);
+      moonManCurrentRotation += MOON_MAN_ROTATION_SPEED * deltaTime;
     }
 
     let moonManAlpha = moonManJumpElapsed / MOON_MAN_JUMP_DURATION;
@@ -249,40 +323,54 @@ let possibleScenes = [
     }
   }
 ];
+
+// Input based interactions that can happen during each scene
+
 let sceneInteractionList = [
   {
-    mouseClicked: [
-      function () {
-        /*
-           Randomizes the color of the wave when clicking quickly again after last click
-           Usually when double clicking
-        */
+    mouseClicked: function () {
+      /*
+         Randomizes the color of the wave when clicking quickly again after last click
+         Usually when double clicking
+      */
 
-        let now = millis();
-        if (now - waveColorLastChanged <= waveColorChangeThreshold) {
-          randomizeWaveColor();
-        }
-        waveColorLastChanged = now;
+      let now = millis();
+      if (now - waveColorLastChanged <= waveColorChangeThreshold) {
+        randomizeWaveColor();
       }
-    ]
+      waveColorLastChanged = now;
+    }
   },
   {
-    keyPressed: [
-      function () {
-        // Resets the moonManJumpElapsed, which allows him to jumo again
+    keyPressed: function () {
+      // Resets the moonManJumpElapsed, which allows him to jumo again
 
-        if (key === " " && moonManJumpElapsed >= MOON_MAN_JUMP_DURATION) {
-          moonManJumpElapsed = 0;
-          moonManJumpSound.play();
-        } else if (key === "Backspace") {
-          // The planets will be regenerated here
+      if (key === " " && moonManJumpElapsed >= MOON_MAN_JUMP_DURATION) {
+        moonManJumpElapsed = 0;
+        moonManJumpSound.play();
+      } else if (key === "Backspace") {
+        // The planets will be regenerated here
 
-          generatePlanets();
-        }
+        generatePlanets();
       }
-    ]
+    }
   }
-]
+];
+
+// Stuff that happens when switching to that specific scene
+
+let sceneToggles = [
+  function () {
+    amplitudeSlider.show();
+    frequencySlider.show();
+    speedSlider.show();
+  },
+  function () {
+    amplitudeSlider.hide();
+    frequencySlider.hide();
+    speedSlider.hide();
+  }
+];
 let sceneAmount = possibleScenes.length;
 
 // This is a class that represents the shape itself
@@ -319,11 +407,7 @@ class Shape {
           }
         }
 
-        /*
-          If no active shapes anymore, it will clear the array
-          This makes sure that it doesn't have to loop through inactive shapes anymore every frame
-          Since it doesn't do anything anyway
-        */
+        // If no active shapes anymore, it will clear the array
 
         if (noActiveShapes) {
           shapeList.length = 0;
@@ -387,11 +471,7 @@ function generatePlanets() {
 }
 
 function assignShapeProperties(shape) {
-  /*
-    Selecting the right waveInfo based on generated position
-    First I map the position into the right range
-    Then I can use it to access the values from the waveGrid
-  */
+  // Selecting the right waveInfo based on generated position
 
   let waveInfo = waveGrid[floor(random(
     0,
@@ -401,12 +481,7 @@ function assignShapeProperties(shape) {
     WAVE_GRID_HEIGHT
   ))];
 
-  /*
-    Setting the base properties to the default settings
-    Targetsize, duration, shape color, and the shape creator are randomized
-    It will also use the selected wave info's x and z coordinate
-    And also assign the waveInfo to that shape, so it can always float on that specific vertex
-  */
+  // Assigns the properties to the shape, some are random
 
   shape.active = true;
   shape.targetSize = random(shapeMinSize, shapeMaxSize);
@@ -452,7 +527,6 @@ function generateShapes(amount) {
   /*
     The system reuses already existing shapes if there are any inactive left
     If there aren't any inactive shapes it can reuse, it will add a new one to the array
-    It also plays a little spawn noise for the shapes
   */
 
   shapeGenerationSound.play();
@@ -463,14 +537,12 @@ function generateShapes(amount) {
     for (let shape of shapeList) {
       if (shape.reactivate()) {
         noInactiveShapes = false;
-        console.log("Shape reused!");
         break;
       }
     }
 
     if (noInactiveShapes) {
       shapeList.push(new Shape());
-      console.log("New shape added!");
     }
   }
 }
@@ -484,19 +556,52 @@ function preload() {
   planetTexture = loadImage("./Assets/Planet_Texture.jpg");
   moonTexture = loadImage("./Assets/Moon_Texture.png");
 
-  moonManModel = loadModel("./Assets/Moon_Man_Model.obj");
-  moonManTexture = loadImage("./Assets/Moon_Man_Texture.png");
+  moonManTexture = loadImage("./Assets/Junkbot_Texture.png");
+  moonManModel = loadModel("./Assets/Junkbot_Model.obj");
   moonManJumpSound = loadSound("./Assets/Moon_Man_Jump.mp3");
 }
 
-/*
-  Initializing some variables and arrays
-  The waveGrid contains column arrays that contain settings for each "vertex"
-  Such as the frequency and origin of the wave vertices
-*/
+// Initializing some variables and arrays
 
 function setup() {
-  createCanvas(800, 600, WEBGL);
+  createCanvas(WINDOW_WIDTH, WINDOW_HEIGHT, WEBGL);
+
+  fieldOfView = 2 * atan((WINDOW_HEIGHT / 2) / 800);
+
+  sliderTextFont = loadFont("./Assets/LilitaOne-Regular.ttf")
+
+  amplitudeSlider = createSlider(
+    minWaveAmplitude,
+    maxWaveAmplitude,
+    waveAmplitude,
+    stepWaveAmplitude
+  );
+  amplitudeSlider.position(sliderOriginX, amplitudeSliderY);
+  amplitudeSlider.input(function () {
+    waveAmplitude = amplitudeSlider.value();
+  });
+
+  frequencySlider = createSlider(
+    minWaveFrequency,
+    maxWaveFrequency,
+    waveFrequency,
+    stepWaveFrequency
+  );
+  frequencySlider.position(sliderOriginX, frequencySliderY);
+  frequencySlider.input(function () {
+    waveFrequency = frequencySlider.value();
+  });
+
+  speedSlider = createSlider(
+    minWaveSpeed,
+    maxWaveSpeed,
+    waveSpeed,
+    stepWaveSpeed
+  );
+  speedSlider.position(sliderOriginX, speedSliderY);
+  speedSlider.input(function () {
+    waveSpeed = speedSlider.value();
+  });
 
   randomizeWaveColor();
 
@@ -506,14 +611,12 @@ function setup() {
       columnValues[z] = {
         originX: x * WAVE_PART_SIZE - WAVE_GRID_WIDTH_OFFSET,
         originZ: z * WAVE_PART_SIZE - WAVE_GRID_HEIGHT_OFFSET,
-        seedX: x * WAVE_FREQUENCY,
-        seedZ: z * WAVE_FREQUENCY
+        posX: x,
+        posZ: z
       };
     }
     waveGrid[x] = columnValues;
   }
-
-  planetAxisAngle = radians(20);
 
   generatePlanets();
 }
@@ -521,57 +624,38 @@ function setup() {
 function draw() {
   background(0);
 
-  /*
-    This enables the ability to move the camera around
-    Which is very nice for scenes like this
-  */
+  // This enables the ability to move the camera around
 
   orbitControl();
 
-  /*
-    This just makes sure it renders the right scene into the window
-    This also allows me to make adding scenes easier
-    Because you can just add a function to the possibleScenes function
-    And it will be a scene you can toggle to
-  */
+  // This just makes sure it renders the right scene into the window
 
+  perspective(fieldOfView, ASPECT_RATIO, NEAR, FAR)
   possibleScenes[currentScene]();
 }
 
 function keyPressed() {
-  /*
-    Here I am checking if there are any keyPressed based functions to run
-    First I check if there are any functions to run for this scene
-    Then I check if there are specifically keyPressed commands to run
-    Then I loop through the array and run all of them
-    I made this system so I can dynamically add new stuff to run for certain scenes at certain events
-  */
+  // Runs some interaction based code based on current scene
 
   let sceneInteractions = sceneInteractionList[currentScene];
 
   if (sceneInteractions) {
-    let keyPressedInteractions = sceneInteractions.keyPressed;
+    let keyPressedInteraction = sceneInteractions.keyPressed;
 
-    if (keyPressedInteractions) {
-      for (let keyPressedInteraction of keyPressedInteractions) {
-        keyPressedInteraction();
-      }
+    if (keyPressedInteraction) {
+      keyPressedInteraction();
     }
   }
 
-  /*
-    When clicking enter it will shift the currentScene to the next one
-    The math is basically saying
-    If the currentScene reaches the sceneAmount, it will turn into 0 again
-    Aka the first scene
-    You also have "current % total + 1", which makes the base 1
-    But "(current + 1) % total" (what I use now) makes the base 0 and the total one less than the actual total elements of an array
-    Which is exactly what I need, since the highest index is always one less than the length of an array
-    Both can be used to make a number loop around back to a starting value after it reaches the end
-  */
+  // Switches to the next scene, resetting it to 0 if it reached the last scene
 
   if (key === "Enter") {
     currentScene = (currentScene + 1) % sceneAmount;
+    let sceneToggle = sceneToggles[currentScene];
+
+    if (sceneToggle) {
+      sceneToggle();
+    }
   }
 }
 
@@ -581,12 +665,10 @@ function mouseClicked() {
   let sceneInteractions = sceneInteractionList[currentScene];
 
   if (sceneInteractions) {
-    let mouseClickedInteractions = sceneInteractions.mouseClicked;
+    let mouseClickedInteraction = sceneInteractions.mouseClicked;
 
-    if (mouseClickedInteractions) {
-      for (let mouseClickedInteraction of mouseClickedInteractions) {
-        mouseClickedInteraction();
-      }
+    if (mouseClickedInteraction) {
+      mouseClickedInteraction();
     }
   }
 }
