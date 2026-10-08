@@ -380,6 +380,22 @@ const WINDOW_HEIGHT = 600;
 
 const ASSET_FOLDER = "./Assets/";
 
+let quizScene = "Selection1";
+let quizScenes = {
+  Selection1: function () {
+    square(200, 200, 50);
+  },
+  Selection2: function () {
+
+  },
+  Game: function () {
+
+  },
+  EndMenu: function () {
+
+  }
+};
+
 function preload() {
   forEachQuiz(function (quiz) {
     quiz.image = loadImage(getFilePath(quiz.image));
@@ -401,7 +417,8 @@ function setup() {
 }
 
 function draw() {
-
+  background(220);
+  quizScenes[quizScene]();
 }
 
 function getFilePath(fileName) {
