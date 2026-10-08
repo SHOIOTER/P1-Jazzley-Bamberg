@@ -1,411 +1,135 @@
-let quizList = {
-  "The Battle Cats": {
-    image: "Game_Icon.png",
-    variations: {
-      Easy: [
-        {
-          question: "What is the name of this unit?",
-          answers: [
-            {
-              answer: "Cat",
-              correct: true
-            },
-            { answer: "Ultraman" },
-            { answer: "The Mighty Cat" },
-            { answer: "Dog" }
-          ],
-          image: "Normal_Cat.png"
-        },
-        {
-          question: "What is this powerup called?",
-          answers: [
-            {
-              answer: "Speed Up",
-              correct: true
-            },
-            { answer: "Speed Power" },
-            { answer: "Fast Button" },
-            { answer: "Ultra Speed" }
-          ],
-          image: "Speed_Up.png"
-        },
-        {
-          question: "What are these called?",
-          answers: [
-            {
-              answer: "Treasures",
-              correct: true
-            },
-            { answer: "Coins" },
-            { answer: "Points" },
-            { answer: "Candy" }
-          ],
-          image: "Treasures.png"
-        },
-        {
-          question: "What is the name of the second unit you get in the game?",
-          answers: [
-            {
-              answer: "Tank Cat",
-              correct: true
-            },
-            { answer: "Super Cat" },
-            { answer: "Tall Cat" },
-            { answer: "King George V" }
-          ],
-          image: "Tank_Cat.png"
-        },
-        {
-          question: "Which of these YouTubers are known to play the game?",
-          answers: [
-            {
-              answer: "MattShea",
-              correct: true
-            },
-            {
-              answer: "CaptainSauce",
-              correct: true
-            },
-            { answer: "KreekCraft" },
-            { answer: "Foltyn" }
-          ],
-          image: "Game_Logo.png"
-        },
-        {
-          question: "What is the name of the first stage in the game?",
-          answers: [
-            {
-              answer: "Korea",
-              correct: true
-            },
-            { answer: "Moon" },
-            { answer: "Singapore" },
-            { answer: "Japan" }
-          ]
-        },
-        {
-          question: "The game has a 3DS version",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ]
-        },
-        {
-          question: "The game costs money",
-          answers: [
-            {
-              answer: "False",
-              correct: true
-            },
-            { answer: "True" }
-          ]
-        },
-        {
-          question: "The game is a mobile game",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ]
-        },
-        {
-          question: "The game has many spinoff games",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ]
-        }
-      ],
-      Normal: [
-        {
-          question: "What is the reason why MattShea started playing the game?",
-          answers: [
-            {
-              answer: "He got sponsored by the creators",
-              correct: true
-            },
-            { answer: "He got an ad of the game" },
-            { answer: "He randomly found it on his phone" },
-            { answer: "He got a dream of the game" }
-          ],
-          image: "MattShea.jpg"
-        },
-        {
-          question: "In which year did the Japanese version of the game release?",
-          answers: [
-            {
-              answer: "2012",
-              correct: true
-            },
-            { answer: "2014 BCE" },
-            { answer: "3057" },
-            { answer: "1246" }
-          ]
-        },
-        {
-          question: "What is this unit called?",
-          answers: [
-            {
-              answer: "Awakened Bahamut Cat",
-              correct: true
-            },
-            { answer: "Mr. Beast" },
-            { answer: "The Supreme Beast" },
-            { answer: "Ultran the Great" }
-          ],
-          image: "Awakened_Bahamut.png"
-        },
-        {
-          question: "What is this unit called?",
-          answers: [
-            {
-              answer: "Dark Catman",
-              correct: true
-            },
-            { answer: "Super Cat" },
-            { answer: "Cat Lord" },
-            { answer: "The Mysterious Cat" }
-          ],
-          image: "Dark_Cat_Man.png"
-        },
-        {
-          question: "In older versions of the game you could get green catfruits on Tuesday",
-          answers: [
-            {
-              answer: "False",
-              correct: true
-            },
-            { answer: "True" }
-          ],
-          image: "Green_Catfruit.png"
-        },
-        {
-          question: "Which catfruit could you get when playing Thursday's catfruit stage?",
-          answers: [
-            {
-              answer: "Blue Catfruit",
-              correct: true
-            },
-            {
-              answer: "Epic Catfruit",
-              correct: true
-            },
-            { answer: "Yellow Catfruit" },
-            { answer: "Red Catfruit" }
-          ],
-          image: "Catfruit_Set.png"
-        },
-        {
-          question: "Currently you can get any catfruit on any day of the week",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ]
-        },
-        {
-          question: "What is the Nintendo Switch version of the game called?",
-          answers: [
-            {
-              answer: "The Battle Cats Unite!",
-              correct: true
-            },
-            { answer: "The Battle Cats Switch Edition" },
-            { answer: "The Battle Cats Pop!" },
-            { answer: "The Battle Bears" }
-          ]
-        },
-        {
-          question: "What is this unit called?",
-          answers: [
-            {
-              answer: "Manic Mohawk Cat",
-              correct: true
-            },
-            { answer: "Punk Cat" },
-            { answer: "Insane Cat" },
-            { answer: "Weird Cat" }
-          ],
-          image: "Manic_Hohawk.png"
-        },
-        {
-          question: "Crazed Cow is a rusher",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ],
-          image: "Crazed_Cow.png"
-        }
-      ],
-      Hard: [
-        {
-          question: "In which version was Cat Machine's true form added?",
-          answers: [
-            {
-              answer: "Version 5.6",
-              correct: true
-            },
-            { answer: "Version 1.4" },
-            { answer: "Version 10.8" },
-            { answer: "Version 123.7" }
-          ],
-          image: "Cat_Machine_True_Form.png"
-        },
-        {
-          question: "What is this enemy called?",
-          answers: [
-            {
-              answer: "Sage of Mind Soractes",
-              correct: true
-            },
-            { answer: "The Great Tinker" },
-            { answer: "Mastermind" },
-            { answer: "The Greek Guy" }
-          ],
-          image: "Socrates.png"
-        },
-        {
-          question: "This enemy is based on Isaac Newton",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ],
-          image: "Newton.png"
-        },
-        {
-          question: "What ability do sage enemies have?",
-          answers: [
-            {
-              answer: "Resistance to debuffs",
-              correct: true
-            },
-            { answer: "Only taking 1 damage per hit" },
-            { answer: "The ability to teleport" },
-            { answer: "Nothing, it's just a sub trait" }
-          ],
-          image: "Dogenstein.png"
-        },
-        {
-          question: "What is the name of the so called mystery cat?",
-          answers: [
-            {
-              answer: "Capsule Cat",
-              correct: true
-            },
-            { answer: "Matt Cat" },
-            { answer: "Super Red Guy" },
-            { answer: "Mystical Cat" }
-          ],
-          image: "MattShea_Collab.jpg"
-        },
-        {
-          question: "This unit has a 'Dodge Attack' talent",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ],
-          image: "Flying_Ninja_Cat.png"
-        },
-        {
-          question: "This enemy has the floating trait",
-          answers: [
-            {
-              answer: "False",
-              correct: true
-            },
-            { answer: "True" }
-          ],
-          image: "Relic_Bun_Bun.png"
-        },
-        {
-          question: "Relic enemies are known to have the curse ability",
-          answers: [
-            {
-              answer: "True",
-              correct: true
-            },
-            { answer: "False" }
-          ],
-          image: "Relic_Trait.png"
-        },
-        {
-          question: "Barriers can genenerate",
-          answers: [
-            {
-              answer: "False",
-              correct: true
-            },
-            { answer: "True" }
-          ]
-        },
-        {
-          question: "Why is Cyberface not an enemy with the floating trait?",
-          answers: [
-            {
-              answer: "It's stated that he has a dozen of invisible plasma legs",
-              correct: true
-            },
-            { answer: "The creators forgot to add it" },
-            { answer: "Metal enemies can't have the floating trait" },
-            { answer: "This statement is a lie" }
-          ],
-          image: "Cyberface.png"
-        }
-      ]
-    }
-  }
-};
-
 const WINDOW_WIDTH = 800;
 const WINDOW_HEIGHT = 600;
 
 const ASSET_FOLDER = "./Assets/";
 
-let quizScene = "Selection1";
-let quizScenes = {
-  Selection1: function () {
-    square(200, 200, 50);
-  },
-  Selection2: function () {
+const CENTER_POS_X = WINDOW_WIDTH / 2;
 
-  },
-  Game: function () {
+const TITLE_TEXT_SIZE = 70;
+const TITLE_TEXT_POS_Y = 70;
+const TITLE_TEXT_STROKE_WEIGHT = 3;
 
-  },
-  EndMenu: function () {
+const QUIZ_SELECT_TEXT_STRING = "Select a quiz!";
+const QUIZ_SELECT_TEXT_COLOR = "rgb(0, 200, 255)";
 
+const VARIATION_SELECT_TEXT_STRING = "Select a variation!";
+const VARIATION_SELECT_TEXT_COLOR = "rgb(100, 200, 100)";
+
+const QUESTION_IMAGE_AREA_HEIGHT = WINDOW_HEIGHT * 0.45;
+const QUESTION_IMAGE_AREA_POS_Y = QUESTION_IMAGE_AREA_HEIGHT / 2;
+const QUESTION_IMAGE_AREA_COLOR = "rgb(255, 155, 0)";
+const QUESTION_IMAGE_BOUND_HEIGHT = QUESTION_IMAGE_AREA_HEIGHT * 0.9;
+
+const QUESTION_TEXT_AREA_HEIGHT = WINDOW_HEIGHT * 0.1;
+const QUESTION_TEXT_AREA_POS_Y = QUESTION_IMAGE_AREA_HEIGHT + QUESTION_TEXT_AREA_HEIGHT / 2;
+const QUESTION_TEXT_AREA_COLOR = "rgb(0, 200, 255)";
+const QUESTION_TEXT_SIZE = 25;
+const QUESTION_TEXT_COLOR = "rgb(220, 220, 220)";
+
+const QUESTION_BUTTONS_AREA_HEIGHT = QUESTION_IMAGE_AREA_HEIGHT;
+const QUESTION_BUTTONS_AREA_POS_Y = WINDOW_HEIGHT - QUESTION_IMAGE_AREA_POS_Y;
+const QUESTION_BUTTONS_AREA_COLOR = "rgb(255, 155, 0)";
+
+let quizList;
+let currentVariation;
+let currentQuestion;
+let currentIndex = 0;
+
+let quizSceneSwitchActions = {
+  QuizSelect: function () {
+    // Making stuff reset if replaying the quiz
+  },
+  VariantSelect: function () {
+    // Making sure the variant buttons are loaded
+  },
+  QuizGame: function () {
+    // Enable the buttons and other quiz elements
+  },
+  EndScreen: function () {
+    // Show the end screen that shows your score and the menu button
   }
 };
+let quizScenes = {
+  QuizSelect: function () {
+    // Rendering the quiz selection screen
+
+    displayTitle(QUIZ_SELECT_TEXT_STRING, QUIZ_SELECT_TEXT_COLOR);
+  },
+  VariantSelect: function () {
+    // Rendering the variant selection screen
+
+    displayTitle(VARIATION_SELECT_TEXT_STRING, VARIATION_SELECT_TEXT_COLOR);
+  },
+  QuizGame: function () {
+    // Rendering the whole quiz layout
+
+    push();
+    translate(CENTER_POS_X, 0);
+
+    noStroke();
+
+    // The question image area
+
+    push();
+    translate(0, QUESTION_IMAGE_AREA_POS_Y);
+
+    fill(QUESTION_IMAGE_AREA_COLOR);
+    rect(0, 0, WINDOW_WIDTH, QUESTION_IMAGE_AREA_HEIGHT);
+
+    fill(0, 155, 255);
+    rect(0, 0, 500, QUESTION_IMAGE_BOUND_HEIGHT);
+
+    pop();
+
+    // The question text area
+
+    push();
+    translate(0, QUESTION_TEXT_AREA_POS_Y);
+
+    fill(QUESTION_TEXT_AREA_COLOR);
+    rect(0, 0, WINDOW_WIDTH, QUESTION_TEXT_AREA_HEIGHT);
+
+    stroke(0);
+    strokeWeight(TITLE_TEXT_STROKE_WEIGHT);
+    fill(QUESTION_TEXT_COLOR);
+
+    textSize(QUESTION_TEXT_SIZE);
+    text("What color is the sun?", 0, 0);
+
+    pop();
+
+    // The question buttons area
+
+    push();
+    translate(0, QUESTION_BUTTONS_AREA_POS_Y);
+
+    fill(QUESTION_BUTTONS_AREA_COLOR);
+    rect(0, 0, WINDOW_WIDTH, QUESTION_BUTTONS_AREA_HEIGHT);
+
+    pop();
+
+    pop();
+  },
+  EndScreen: function () {
+    // Rendering the end screen
+
+    displayTitle("The quiz is over!", "rgb(150, 150, 150)");
+  }
+};
+let quizScene = quizScenes.QuizGame;
 
 function preload() {
-  forEachQuiz(function (quiz) {
-    quiz.image = loadImage(getFilePath(quiz.image));
-  });
-  forEachQuestion(function (question) {
-    let questionImage = question.image;
+  quizList = loadJSON(getFilePath("QuizList.json"), function () {
+    forEachQuiz(function (quiz) {
+      quiz.image = loadImage(getFilePath(quiz.image));
+    });
+    forEachQuestion(function (question) {
+      let questionImage = question.image;
 
-    if (questionImage) {
-      question.image = loadImage(getFilePath(questionImage));
-    }
+      if (questionImage) {
+        question.image = loadImage(getFilePath(questionImage));
+      }
+    });
   });
 }
 
@@ -418,7 +142,9 @@ function setup() {
 
 function draw() {
   background(220);
-  quizScenes[quizScene]();
+
+  textAlign(CENTER, CENTER);
+  quizScene();
 }
 
 function getFilePath(fileName) {
@@ -441,4 +167,24 @@ function forEachQuestion(callback) {
       }
     }
   });
+}
+
+function changeScene(scene) {
+  quizSceneSwitchActions[scene]();
+  quizScene = quizScenes[scene];
+}
+
+function displayTitle(titleString, titleColor) {
+  push();
+
+  translate(CENTER_POS_X, TITLE_TEXT_POS_Y);
+
+  stroke(0);
+  strokeWeight(TITLE_TEXT_STROKE_WEIGHT);
+  fill(titleColor);
+
+  textSize(TITLE_TEXT_SIZE);
+  text(titleString, 0, 0);
+
+  pop();
 }
