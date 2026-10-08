@@ -1,8 +1,5 @@
-let assetsFolder = "./Assets/"
-
 let quizList = {
   "The Battle Cats": {
-    background: "",
     image: "Game_Icon.png",
     variations: {
       Easy: [
@@ -378,82 +375,53 @@ let quizList = {
   }
 };
 
-let currentState = "Game";
-let currentSubject = "The Battle Cats";
-let currentVariation = "Normal";
-let currentQuestion = 1;
+const WINDOW_WIDTH = 800;
+const WINDOW_HEIGHT = 600;
+
+const ASSET_FOLDER = "./Assets/";
 
 function preload() {
-  for (let quizName of Object.keys(quizList)) {
-    let quiz = quizList[quizName];
+  forEachQuiz(function (quiz) {
     quiz.image = loadImage(getFilePath(quiz.image));
+  });
+  forEachQuestion(function (question) {
+    let questionImage = question.image;
+
+    if (questionImage) {
+      question.image = loadImage(getFilePath(questionImage));
+    }
+  });
+}
+
+function setup() {
+  createCanvas(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+  rectMode(CENTER);
+  imageMode(CENTER);
+}
+
+function draw() {
+
+}
+
+function getFilePath(fileName) {
+  return ASSET_FOLDER + fileName;
+}
+
+function forEachQuiz(callback) {
+  for (let quizName of Object.keys(quizList)) {
+    callback(quizList[quizName]);
+  }
+}
+
+function forEachQuestion(callback) {
+  forEachQuiz(function (quiz) {
     let quizVariations = quiz.variations;
 
     for (let variationName of Object.keys(quizVariations)) {
       for (let question of quizVariations[variationName]) {
-        let questionImage = question.image;
-
-        if (questionImage) {
-          question.image = loadImage(getFilePath(questionImage));
-        }
+        callback(question);
       }
     }
-  }
-}
-
-function setup() {
-  createCanvas(800, 600);
-
-  rectMode(CENTER);
-  imageMode(CENTER);
-
-  shuffle(quizList[currentSubject].variations[currentVariation], true);
-
-  for (let question of quizList[currentSubject].variations[currentVariation]) {
-    shuffle(question.answers, true);
-  }
-}
-
-function draw() {
-  background(220);
-
-  translate(width / 2, 100);
-
-  textAlign(CENTER, CENTER);
-  textSize(50);
-  if (currentState === "Start") {
-    // Start menu logic
-    text("Start", 0, 0);
-  } else if (currentState === "Game") {
-    // Game logic
-    text("Game", 0, 0);
-  } else {
-    // End screen logic
-    text("End", 0, 0);
-  }
-
-  textSize(20);
-  translate(0, 60);
-
-  image(
-    quizList[currentSubject].variations[currentVariation][currentQuestion - 1].image || quizList[currentSubject].image, 0, 150, 200, 200
-  );
-  text(quizList[currentSubject].variations[currentVariation][currentQuestion - 1].question, 0, 0);
-
-  push();
-  let offset = 290;
-  for (let answer of quizList[currentSubject].variations[currentVariation][currentQuestion - 1].answers) {
-    fill(answer.correct && color(0, 155, 0) || color(255, 0, 0))
-    text(answer.answer, 0, offset);
-    offset += 35;
-  }
-  pop();
-}
-
-function mouseClicked() {
-  currentQuestion = currentQuestion % quizList[currentSubject].variations[currentVariation].length + 1;
-}
-
-function getFilePath(fileName) {
-  return assetsFolder + fileName;
+  });
 }
