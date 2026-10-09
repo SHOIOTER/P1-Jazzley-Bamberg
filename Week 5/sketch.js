@@ -2,6 +2,7 @@ const WINDOW_WIDTH = 800;
 const WINDOW_HEIGHT = 600;
 
 const ASSET_FOLDER = "./Assets/";
+const DATA_FOLDER = "./Data/"
 
 const CENTER_POS_X = WINDOW_WIDTH / 2;
 
@@ -15,6 +16,8 @@ const BUTTON_TEXT_COLOR = "rgb(255, 255, 255)";
 const BUTTON_BORDER_RADIUS = 15;
 const BUTTON_BORDER_WIDTH = 5;
 const BUTTON_FONT_WEIGHT = "Bold";
+const BUTTON_TEXT_STROKE_WIDTH = 1;
+const BUTTON_TEXT_STROKE_COLOR = "rgb(0, 0, 0)";
 
 const QUIZ_SELECT_TEXT_STRING = "Select a quiz!";
 const QUIZ_SELECT_TEXT_COLOR = "rgb(0, 200, 255)";
@@ -56,6 +59,7 @@ const QUESTION_BUTTON_RIGHT_COLOR = "rgb(0, 200, 0)";
 let canClickAnswer = true;
 let answerRightSound;
 let answerWrongSound;
+let buttonPressSound;
 
 const SELECT_BUTTON_SIZE_WIDTH = 150;
 const SELECT_BUTTON_SIZE_HEIGHT = 100;
@@ -79,7 +83,7 @@ const MENU_BUTTON_POS_Y = WINDOW_HEIGHT - MENU_BUTTON_HEIGHT * 1.25;
 const MENU_BUTTON_TEXT_STRING = "Back to menu!";
 const MENU_BUTTON_TEXT_SIZE = 40;
 
-const NEXT_QUESTION_DELAY = 3000;
+const NEXT_QUESTION_DELAY = 2500;
 
 let quizSelectButtons = [];
 let variationSelectButtons = [];
@@ -98,6 +102,8 @@ let answerAmount;
 
 let quizSceneSwitchActions = {
   QuizSelect: function () {
+    // Resetting some stuff
+
     questionIndex = -1;
     questionsCorrect = 0;
 
@@ -106,19 +112,13 @@ let quizSceneSwitchActions = {
     for (let quizbutton of quizSelectButtons) {
       quizbutton.show();
     }
-
-    // Resetting some stuff for the next round
   },
   VariantSelect: function () {
+    // Hiding all the quiz selection buttons
+
     for (let quizButton of quizSelectButtons) {
       quizButton.hide();
     }
-
-    for (let variationButton of variationSelectButtons) {
-      variationButton.show();
-    }
-
-    // Some other stuff I have to add
   },
   QuizGame: function () {
     for (let variationButton of variationSelectButtons) {
@@ -222,20 +222,26 @@ let quizScenes = {
 let quizScene = quizScenes.QuizSelect;
 
 function preload() {
-  quizList = loadJSON(getFilePath("QuizList.json"), function () {
+  quizList = loadJSON(getFilePath(DATA_FOLDER, "QuizList.json"), function () {
     forEachQuiz(function (quiz) {
-      quiz.image = loadImage(getFilePath(quiz.image));
+      quiz.image = loadImage(getFilePath(ASSET_FOLDER, quiz.image));
     });
     forEachQuestion(function (question) {
       let questionImage = question.image;
 
       if (questionImage) {
-        question.image = loadImage(getFilePath(questionImage));
+        question.image = loadImage(getFilePath(ASSET_FOLDER, questionImage));
       }
     });
   });
-  answerRightSound = loadSound(getFilePath("AnswerRight.mp3"));
-  answerWrongSound = loadSound(getFilePath("AnswerWrong.mp3"));
+  answerRightSound = loadSound(getFilePath(ASSET_FOLDER, "Answer_Right.mp3"));
+  answerRightSound.setVolume(0.1);
+
+  answerWrongSound = loadSound(getFilePath(ASSET_FOLDER, "Answer_Wrong.mp3"));
+  answerWrongSound.setVolume(0.2);
+
+  buttonPressSound = loadSound(getFilePath(ASSET_FOLDER, "Button_Press.mp3"));
+  buttonPressSound.setVolume(0.8);
 }
 
 function setup() {
@@ -257,7 +263,18 @@ function setup() {
       currentVariation = quizList[quizButton.html()];
       currentPlaceholderImage = currentVariation.image;
       currentVariation = currentVariation.variations;
+
+      let variationNames = Object.keys(currentVariation);
+
+      for (let j = 0; j < variationNames.length; j++) {
+        let variationButton = variationSelectButtons[j];
+        variationButton.html(variationNames[j]);
+        variationButton.show();
+      }
+
       changeScene("VariantSelect");
+
+      buttonPressSound.play();
     });
 
     styleButton(quizButton, QUIZ_SELECT_BUTTON_TEXT_SIZE);
@@ -266,12 +283,21 @@ function setup() {
     i++;
   });
 
-  i = 0;
-  forEachVariation(function (_, variationName) {
-    let variationButton = createButton(variationName);
+  let mostVariations = 0;
+
+  forEachQuiz(function (quiz) {
+    let variationAmount = Object.keys(quiz.variations).length;
+
+    if (variationAmount > mostVariations) {
+      mostVariations = variationAmount;
+    }
+  });
+
+  for (let j = 0; j < mostVariations; j++) {
+    let variationButton = createButton();
     variationButton.position(
-      SELECT_BUTTON_ORIGIN_X + i % SELECT_BUTTON_COLUMNS * SELECT_BUTTON_OFFSET_WIDTH,
-      SELECT_BUTTON_ORIGIN_Y + floor(i / SELECT_BUTTON_COLUMNS) * SELECT_BUTTON_OFFSET_HEIGHT
+      SELECT_BUTTON_ORIGIN_X + j % SELECT_BUTTON_COLUMNS * SELECT_BUTTON_OFFSET_WIDTH,
+      SELECT_BUTTON_ORIGIN_Y + floor(j / SELECT_BUTTON_COLUMNS) * SELECT_BUTTON_OFFSET_HEIGHT
     );
     variationButton.size(SELECT_BUTTON_SIZE_WIDTH, SELECT_BUTTON_SIZE_HEIGHT);
 
@@ -281,15 +307,15 @@ function setup() {
       shuffle(currentVariation, true);
       nextQuestion();
       changeScene("QuizGame");
+      buttonPressSound.play();
     });
 
     styleButton(variationButton, VARIATION_SELECT_BUTTON_TEXT_SIZE);
 
     variationButton.hide();
 
-    variationSelectButtons[i] = variationButton;
-    i++;
-  });
+    variationSelectButtons[j] = variationButton;
+  }
 
   let mostAnswers = 0;
 
@@ -301,8 +327,8 @@ function setup() {
     }
   });
 
-  for (let i = 0; i < mostAnswers; i++) {
-    let answerButton = createButton(undefined, i);
+  for (let j = 0; j < mostAnswers; j++) {
+    let answerButton = createButton(undefined, j);
 
     answerButton.mouseClicked(function () {
       if (canClickAnswer) {
@@ -317,12 +343,12 @@ function setup() {
           answerWrongSound.play();
         }
 
-        for (let j = 0; j < answerAmount; j++) {
-          let otherAnswerButton = quizAnswerButtons[j];
+        for (let k = 0; k < answerAmount; k++) {
+          let otherAnswerButton = quizAnswerButtons[k];
           
-          if (currentAnswers[j].correct) {
+          if (currentAnswers[k].correct) {
             otherAnswerButton.style("background-color", QUESTION_BUTTON_RIGHT_COLOR);
-          } else if (j == clickedIndex) {
+          } else if (k == clickedIndex) {
             otherAnswerButton.style("background-color", QUESTION_BUTTON_WRONG_COLOR);
           }
         }
@@ -335,7 +361,7 @@ function setup() {
 
     answerButton.hide();
 
-    quizAnswerButtons[i] = answerButton;
+    quizAnswerButtons[j] = answerButton;
   }
 
   menuButton = createButton(MENU_BUTTON_TEXT_STRING, MENU_BUTTON_TEXT_SIZE);
@@ -344,6 +370,7 @@ function setup() {
 
   menuButton.mouseClicked(function () {
     changeScene("QuizSelect");
+    buttonPressSound.play();
   });
 
   styleButton(menuButton, MENU_BUTTON_TEXT_SIZE);
@@ -356,8 +383,8 @@ function draw() {
   quizScene();
 }
 
-function getFilePath(fileName) {
-  return ASSET_FOLDER + fileName;
+function getFilePath(fileContainer, fileName) {
+  return fileContainer + fileName;
 }
 
 function forEachQuiz(callback) {
@@ -426,10 +453,14 @@ function nextQuestion() {
   }
 }
 
+// Modifies the scene while also performing some stuff before switching the scene
+
 function changeScene(scene) {
   quizSceneSwitchActions[scene]();
   quizScene = quizScenes[scene];
 }
+
+// Writes a big title on the upper side of the canvas
 
 function displayTitle(titleString, titleColor) {
   push();
@@ -446,9 +477,13 @@ function displayTitle(titleString, titleColor) {
   pop();
 }
 
+// Easily adds px to a number for css styling
+
 function toCSS(num) {
   return num + "px";
 }
+
+// Easily styles the buttons to desired styling
 
 function styleButton(button, textSize) {
   button.style("background-color", BUTTON_BACKGROUND_COLOR);
@@ -458,5 +493,5 @@ function styleButton(button, textSize) {
   button.style("font-size", toCSS(textSize));
   button.style("font-weight", BUTTON_FONT_WEIGHT);
   button.style("color", BUTTON_TEXT_COLOR);
-  button.style("webkit-text-stroke: 1px rgb(0, 0, 0)");
+  button.style("webkit-text-stroke", `${toCSS(BUTTON_TEXT_STROKE_WIDTH)} ${BUTTON_TEXT_STROKE_COLOR}`);
 }
