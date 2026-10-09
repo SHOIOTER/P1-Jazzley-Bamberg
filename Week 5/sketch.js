@@ -9,9 +9,12 @@ const TITLE_TEXT_SIZE = 70;
 const TITLE_TEXT_POS_Y = 70;
 const TITLE_TEXT_STROKE_WEIGHT = 3;
 
-const BUTTON_BACKGROUND_COLOR = "";
-const BUTTON_BORDER_COLOR = "";
-const BUTTON_TEXT_COLOR = "";
+const BUTTON_BACKGROUND_COLOR = "rgb(175, 175, 175)";
+const BUTTON_BORDER_COLOR = "rgb(200, 200, 200)";
+const BUTTON_TEXT_COLOR = "rgb(255, 255, 255)";
+const BUTTON_BORDER_RADIUS = 15;
+const BUTTON_BORDER_WIDTH = 5;
+const BUTTON_FONT_WEIGHT = "Bold";
 
 const QUIZ_SELECT_TEXT_STRING = "Select a quiz!";
 const QUIZ_SELECT_TEXT_COLOR = "rgb(0, 200, 255)";
@@ -75,6 +78,8 @@ const MENU_BUTTON_POS_X = CENTER_POS_X - MENU_BUTTON_WIDTH / 2;
 const MENU_BUTTON_POS_Y = WINDOW_HEIGHT - MENU_BUTTON_HEIGHT * 1.25;
 const MENU_BUTTON_TEXT_STRING = "Back to menu!";
 const MENU_BUTTON_TEXT_SIZE = 40;
+
+const NEXT_QUESTION_DELAY = 3000;
 
 let quizSelectButtons = [];
 let variationSelectButtons = [];
@@ -322,11 +327,7 @@ function setup() {
           }
         }
 
-        /*
-
-        nextQuestion();
-
-        */
+       setTimeout(nextQuestion, NEXT_QUESTION_DELAY);
       }
     });
 
@@ -387,6 +388,7 @@ function nextQuestion() {
   // Move on to the next question, also making the buttons mapped correctly
 
   questionIndex++;
+  canClickAnswer = true;
 
   for (let answerButton of quizAnswerButtons) {
     answerButton.hide();
@@ -416,6 +418,7 @@ function nextQuestion() {
         QUESTION_BUTTON_ORIGIN_Y + lerp(-buttonMagnitude, buttonMagnitude, i / buttonIndexStop) - halfButtonHeight
       );
       answerButton.size(QUESTION_BUTTON_WIDTH, buttonHeight);
+      answerButton.style("background-color", BUTTON_BACKGROUND_COLOR);
       answerButton.show();
     }
   } else {
@@ -443,13 +446,17 @@ function displayTitle(titleString, titleColor) {
   pop();
 }
 
+function toCSS(num) {
+  return num + "px";
+}
+
 function styleButton(button, textSize) {
-  button.style("background-color: rgb(175, 175, 175)");
-  button.style("background-radius: 20px");
-  button.style("border-width: 5px");
-  button.style("border-color: rgb(200, 200, 200)")
-  button.style("font-size", textSize + "px");
-  button.style("font-weight: Bold");
-  button.style("color: white")
+  button.style("background-color", BUTTON_BACKGROUND_COLOR);
+  button.style("border-radius", toCSS(BUTTON_BORDER_RADIUS));
+  button.style("border-width", toCSS(BUTTON_BORDER_WIDTH));
+  button.style("border-color", BUTTON_BORDER_COLOR);
+  button.style("font-size", toCSS(textSize));
+  button.style("font-weight", BUTTON_FONT_WEIGHT);
+  button.style("color", BUTTON_TEXT_COLOR);
   button.style("webkit-text-stroke: 1px rgb(0, 0, 0)");
 }
