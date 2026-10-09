@@ -20,6 +20,10 @@ const QUESTION_IMAGE_AREA_POS_Y = QUESTION_IMAGE_AREA_HEIGHT / 2;
 const QUESTION_IMAGE_AREA_COLOR = "rgb(255, 155, 0)";
 const QUESTION_IMAGE_BOUND_HEIGHT = QUESTION_IMAGE_AREA_HEIGHT * 0.9;
 
+let currentPlaceholderImage;
+let currentQuestionImage;
+let currentImageWidth;
+
 const QUESTION_TEXT_AREA_HEIGHT = WINDOW_HEIGHT * 0.1;
 const QUESTION_TEXT_AREA_POS_Y = QUESTION_IMAGE_AREA_HEIGHT + QUESTION_TEXT_AREA_HEIGHT / 2;
 const QUESTION_TEXT_AREA_COLOR = "rgb(0, 200, 255)";
@@ -29,6 +33,15 @@ const QUESTION_TEXT_COLOR = "rgb(220, 220, 220)";
 const QUESTION_BUTTONS_AREA_HEIGHT = QUESTION_IMAGE_AREA_HEIGHT;
 const QUESTION_BUTTONS_AREA_POS_Y = WINDOW_HEIGHT - QUESTION_IMAGE_AREA_POS_Y;
 const QUESTION_BUTTONS_AREA_COLOR = "rgb(255, 155, 0)";
+
+const SELECT_BUTTON_SIZE = 50;
+const SELECT_BUTTON_COLUMNS = 4;
+const SELECT_BUTTON_ORIGIN_X = 0;
+const SELECT_BUTTON_ORIGIN_Y = 0;
+const SELECT_BUTTON_OFFSET = SELECT_BUTTON_SIZE * 1.2;
+
+let quizSelectButtons = [];
+let variationSelectButtons = [];
 
 let quizList;
 let currentVariation;
@@ -138,6 +151,16 @@ function setup() {
 
   rectMode(CENTER);
   imageMode(CENTER);
+
+  let i = 0;
+  forEachQuiz(function (_, quizName) {
+    let quizButton = createButton(quizName);
+    quizButton.position();
+    i++;
+  });
+
+  i = 0;
+
 }
 
 function draw() {
@@ -153,20 +176,30 @@ function getFilePath(fileName) {
 
 function forEachQuiz(callback) {
   for (let quizName of Object.keys(quizList)) {
-    callback(quizList[quizName]);
+    callback(quizList[quizName], quizName);
   }
 }
 
-function forEachQuestion(callback) {
+function forEachVariation(callback) {
   forEachQuiz(function (quiz) {
     let quizVariations = quiz.variations;
 
     for (let variationName of Object.keys(quizVariations)) {
-      for (let question of quizVariations[variationName]) {
-        callback(question);
-      }
+      callback(quizVariations[variationName], variationName);
     }
   });
+}
+
+function forEachQuestion(callback) {
+  forEachVariation(function (variation) {
+    for (let question of variation) {
+      callback(question);
+    }
+  });
+}
+
+function changeQuestion() {
+
 }
 
 function changeScene(scene) {
