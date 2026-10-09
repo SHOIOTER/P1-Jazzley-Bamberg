@@ -500,5 +500,229 @@
                 }
             ]
         }
+    },
+    "Plants vs. Zombies": {
+        "image": "Game2_Icon.png",
+        "variations": {
+            "Easy": [
+                {
+                    "question": "What is this plant called?",
+                    "answers": [
+                        {
+                            "answer": "Peashooter",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Greenshooter"
+                        },
+                        {
+                            "answer": "Green Guy"
+                        },
+                        {
+                            "answer": "Plant"
+                        }
+                    ],
+                    "image": "Peashooter.png"
+                },
+                {
+                    "question": "What is this zombie called?",
+                    "answers": [
+                        {
+                            "answer": "Dr. Zomboss",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Scientist Zombie"
+                        },
+                        {
+                            "answer": "Mad Zombie"
+                        },
+                        {
+                            "answer": "Mr. Insane"
+                        }
+                    ],
+                    "image": "Dr_Zomboss.png"
+                },
+                {
+                    "question": "MattShea has played this game before",
+                    "answers": [
+                        {
+                            "answer": "True",
+                            "correct": true
+                        },
+                        {
+                            "answer": "False"
+                        }
+                    ],
+                    "image": "MattShea.jpg"
+                },
+                {
+                    "question": "What was this person's role in the game's creation?",
+                    "answers": [
+                        {
+                            "answer": "Creator and lead designer of the game",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Random PopCap employee"
+                        },
+                        {
+                            "answer": "Music composer"
+                        },
+                        {
+                            "answer": "He wasn't involved"
+                        }
+                    ],
+                    "image": "George_Fan.jpg"
+                },
+                {
+                    "question": "How many Adventure Mode levels are there in this game?",
+                    "answers": [
+                        {
+                            "answer": "50 levels",
+                            "correct": true
+                        },
+                        {
+                            "answer": "100 levels"
+                        },
+                        {
+                            "answer": "25 levels"
+                        }
+                    ]
+                },
+                {
+                    "question": "This plant is called Sunflower",
+                    "answers": [
+                        {
+                            "answer": "True",
+                            "correct": true
+                        },
+                        {
+                            "answer": "False"
+                        }
+                    ],
+                    "image": "Sunflower.png"
+                },
+                {
+                    "question": "When does Flag Zombie appear?",
+                    "answers": [
+                        {
+                            "answer": "When a huge wave of zombies is approaching",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Randomly during the level"
+                        },
+                        {
+                            "answer": "Has a rare chance of spawning"
+                        }
+                    ],
+                    "image": "Flag_Zombie.png"
+                },
+                {
+                    "question": "Which of these YouTubers are known to play the game?",
+                    "answers": [
+                        {
+                            "answer": "ZackScottGames",
+                            "correct": true
+                        },
+                        {
+                            "answer": "RamenRoman",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Steak"
+                        },
+                        {
+                            "answer": "MrBeast"
+                        }
+                    ],
+                    "image": "Game2_Logo.png"
+                },
+                {
+                    "question": "In which year did the game release?",
+                    "answers": [
+                        {
+                            "answer": "2009",
+                            "correct": true
+                        },
+                        {
+                            "answer": "1999"
+                        },
+                        {
+                            "answer": "500 BCE"
+                        },
+                        {
+                            "answer": "2015"
+                        }
+                    ]
+                },
+                {
+                    "question": "The game has a plant called Superbean",
+                    "answers": [
+                        {
+                            "answer": "False",
+                            "correct": true
+                        },
+                        {
+                            "answer": "True"
+                        }
+                    ]
+                }
+            ],
+            "Normal": [
+                {
+                    "question": "What is this plant called?",
+                    "answers": [
+                        {
+                            "answer": "Cactus",
+                            "correct": true
+                        },
+                        {
+                            "answer": "Spikey"
+                        },
+                        {
+                            "answer": "Jayson"
+                        },
+                        {
+                            "answer": "Kathorn"
+                        }
+                    ],
+                    "image": "Cactus.png"
+                },
+                {
+                    "question": "In which year did the sequel of the game release?",
+                    "answers": [
+                        {
+                            "answer": "2013",
+                            "correct": true
+                        },
+                        {
+                            "answer": "2098"
+                        },
+                        {
+                            "answer": "2010"
+                        },
+                        {
+                            "answer": "2017"
+                        }
+                    ],
+                    "image": "Game2_Sequel_Icon.jpg"
+                },
+                {
+                    "question": "This plant costs 25 sun",
+                    "answers": [
+                        {
+                            "answer": "True",
+                            "correct": true
+                        },
+                        {
+                            "answer": "False"
+                        }
+                    ],
+                    "image": "Sunshroom.png"
+                }
+            ]
+        }
     }
 }
