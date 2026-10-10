@@ -468,7 +468,7 @@
                     "image": "Relic_Trait.png"
                 },
                 {
-                    "question": "Barriers can genenerate",
+                    "question": "Barriers can regenerate",
                     "answers": [
                         {
                             "answer": "False",
@@ -721,6 +721,25 @@
                         }
                     ],
                     "image": "Sunshroom.png"
+                },
+                {
+                    "question": "How many suns do you get from one sun?",
+                    "answers": [
+                        {
+                            "answer": "25 suns",
+                            "correct": true
+                        },
+                        {
+                            "answer": "50 suns"
+                        },
+                        {
+                            "answer": "One sun"
+                        },
+                        {
+                            "answer": "100 suns"
+                        }
+                    ],
+                    "image": "Sun.webp"
                 }
             ]
         }
