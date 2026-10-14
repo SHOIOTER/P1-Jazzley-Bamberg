@@ -1,0 +1,17 @@
+- Stats voor het huisdier
+- Functie voor het veranderen van scene (woonkamer, keuken, etc)
+- Eet systeem
+- Slaap systeem
+- Speel systeem
+- De art voor het husidier
+- Gezondheids systeem
+- Variabelen hunger, energy, happiness en health
+- Een stats save systeem (localStorage)
+- Achtergrond elementen (bank, klok, TV, etc)
+- Knoppen om de scene te veranderen
+
+- Status balken:
+- Health: Green (high) > Red (low)
+- Happiness: Yellow (high) > Blue (low)
+- Hunger: SSS (high) > SSS (low)
+- Energy: SSS (high) > SSS (low)
