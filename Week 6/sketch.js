@@ -1,61 +1,26 @@
-let WINDOW_WIDTH = 960;
-let WINDOW_HEIGHT = 720;
+const PAGE_TO_CANVAS_DIST = 8;
 
-let ASSET_FOLDER = "./Assets/";
+const WINDOW_WIDTH = 960;
+const WINDOW_HEIGHT = 720;
 
-let defaultStats = {
-  hunger: 0,
-  energy: 100,
-  happiness: 100,
-  health: 100
-};
+const CENTER_X = WINDOW_WIDTH / 2;
+const CENTER_Y = WINDOW_HEIGHT / 2;
 
-let hunger;
-let energy;
-let happiness;
-let health;
+const ASSET_FOLDER = "./assets";
 
-let petAnimData = {
+let petAnimations = {
   default: {
-    anim: "Quiz_Showcase.mp4"
+    track: "ultraman.mp4",
+    looped: true
   }
 };
 
 let petAnimator;
 
-let gameScenes = {
-  Livingroom: function () {
-    background(255, 0, 155);
-
-    fill(255, 0, 0);
-    square(100, 100, 100);
-  },
-  Kitchen: function () {
-    background(255, 155, 0);
-
-    fill(0, 255, 0);
-    square(100, 100, 100);
-
-    fill(255, 0, 0);
-    circle(300, 300, 100);
-  },
-  Bedroom: function () {
-    background(0, 200, 255);
-
-    fill(0, 0, 255);
-    square(100, 100, 100);
-  },
-  Bathroom: function () {
-    background(155, 0, 255);
-
-    fill(255, 155, 0);
-    square(100, 100, 100);
-  }
-};
-let currentScene = gameScenes.Livingroom;
+let currentScene;
 
 function preload() {
-  petAnimator = new AnimationPlayer(petAnimData);
+  petAnimator = new AnimationPlayer(petAnimations);
 }
 
 function setup() {
@@ -63,116 +28,146 @@ function setup() {
 
   imageMode(CENTER);
 
-  let gameStats = getItem("Stats") || defaultStats;
-  hunger = gameStats.hunger;
-  energy = gameStats.energy;
-  happiness = gameStats.happiness;
-  health = gameStats.health;
-
-  let switchSceneRadio = createRadio();
-  switchSceneRadio.position(30, 200);
-  switchSceneRadio.size(50);
-  switchSceneRadio.style("color: white");
-  switchSceneRadio.style("font-size: 30px");
-  switchSceneRadio.style("webkit-text-stroke: 0.65px #000000");
-  switchSceneRadio.style("font-family: Segoe Print");
-  switchSceneRadio.style("font-weight: Bold");
-
-  let sceneNames = Object.keys(gameScenes);
-
-  for (let sceneName of sceneNames) {
-    switchSceneRadio.option(sceneName, sceneName);
-  }
-
-  switchSceneRadio.selected(sceneNames[0]);
-
-  switchSceneRadio.changed(function () {
-    currentScene = gameScenes[switchSceneRadio.value()];
-  });
+  setTimeout(() => petAnimator.play("default"), 1000);
 }
 
 function draw() {
-  currentScene();
-  petAnimator.render(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 800, 600);
-}
+  // Rendering the current scene
 
-function keyPressed() {
-  if (key == "s") {
-    storeItem("Stats", {
-      hunger: hunger,
-      energy: energy,
-      happiness: happiness,
-      health: health
-    });
-  } else if (key == "c") {
-    petAnimator.play("default");
+  switch(currentScene) {
+    case "livingroom": {
+      break;
+    }
+
+    case "kitchen": {
+      break;
+    }
+
+    case "bathroom": {
+      break;
+    }
+
+    case "bedroom": {
+      break;
+    }
+
+    default: {
+      background(220);
+    }
   }
+
+  // Rendering the pet
+
+  petAnimator.render(CENTER_X, CENTER_Y, WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
-function getFilePath(container, name) {
-  return container + name;
+function getFilePath(path, name) {
+  if (Array.isArray(name)) {
+    for (let i = 0; i < name.length; i++) {
+      name[i] = `${path}/${name[i]}`;
+    }
+  }
+
+  return `${path}/${name}`;
+}
+
+function toPixels(value) {
+  return value + "px";
+}
+
+function styleElement(element, textSize) {
+  element.style("background-color", elementBackgroundColor);
+  element.style("border-radius", toPixels(ELEMENT_BORDER_RADIUS));
+  element.style("border-width", toPixels(ELEMENT_BORDER_WIDTH));
+  element.style("border-color", elementBorderColor);
+  element.style("font-size", toPixels(textSize));
+  element.style("font-weight", ELEMENT_FONT_WEIGHT);
+  element.style("color", elementTextColor);
+  element.style("webkit-text-stroke", `${toPixels(ELEMENT_TEXT_STROKE_WIDTH)} ${ELEMENT_TEXT_STROKE_COLOR}`);
 }
 
 class AnimationPlayer {
-  constructor(animData) {
+  constructor(animations) {
     let animationPlayer = this;
 
-    for (let animInfo of Object.values(animData)) {
-      let anim = createVideo(getFilePath(ASSET_FOLDER, animInfo.anim), function () {
-        anim.hide();
+    for (let animation of Object.values(animations)) {
+      let track = createVideo(getFilePath(ASSET_FOLDER, animation.track), function () {
+        track.attribute("muted", "true");
 
-        if (animInfo.idle) {
-          anim.attribute("loop", "true");
+        if (animation.looped) {
+          track.attribute("loop", "true");
         } else {
-          anim.onended(function () {
-            let currentIdle = this.currentIdle;
+          track.onended(function () {
+            let loopingTrack = animationPlayer.loopingTrack;
 
-            if (currentIdle) {
-              animationPlayer.play(currentIdle);
+            if (loopingTrack) {
+              animationPlayer.play(loopingTrack, true);
             } else {
-              animationPlayer.hide();
+              animationPlayer.stop();
             }
           });
         }
+
+        track.hide();
       });
 
-      animInfo.anim = anim;
+      animation.track = track;
     }
 
-    animationPlayer.animData = animData;
+    animationPlayer.animations = animations;
   }
 
-  play(animName) {
-    let animInfo = this.animData[animName];
-    let oldAnim = this.currentAnim;
-    let newAnim = animInfo.anim;
+  play(name, force) {
+    let playingTrack = this.playingTrack;
 
-    if (animInfo.idle) {
-      this.currentIdle = animName;
+    if (name !== playingTrack) {
+      let animations = this.animations;
+      let currentAnimation = animations[playingTrack];
+      let newAnimation = animations[name];
+      let isLooped = newAnimation.looped;
+
+      // Overwrites the currentIdle when the new anim is an idle animation
+
+      if (isLooped) {
+        this.loopingTrack = name;
+      }
+
+      /*
+        Will only instantly overwrite the animation when conditions are met
+        Either the force parameter must be true (makes sure it will overwrite the anim no matter what)
+        It has to be an action anim
+        There was no previous animation
+        Or both the old and new animation were idle animations
+      */
+
+      if (
+        force ||
+        !isLooped ||
+        !currentAnimation ||
+        currentAnimation.looped &&
+        isLooped
+      ) {
+        this.playingTrack = name;
+
+        if (currentAnimation) {
+          currentAnimation.track.stop();
+        }
+
+        newAnimation.track.play();
+      }
     }
-
-    if (oldAnim) {
-      oldAnim.stop();
-    }
-
-    this.currentAnim = newAnim;
-    newAnim.play();
   }
 
-  hide() {
-    this.currentAnim = null;
-    this.currentIdle = null;
+  stop() {
+    this.playingTrack = null;
+    this.loopingTrack = null;
   }
 
   render(x, y, width, height) {
-    let currentAnim = this.currentAnim;
-    
-    if (frameCount % 60 == 0) {
-      console.log(currentAnim);
-    }
+    let playingAnimation = this.animations[this.playingTrack];
 
-    if (currentAnim) {
-      image(currentAnim, x, y, width, height);
+    if (playingAnimation) {
+      image(playingAnimation.track, x, y, width, height);
     }
   }
 }
