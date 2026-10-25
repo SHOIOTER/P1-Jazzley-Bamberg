@@ -7,7 +7,7 @@ Algemeen:
 - Speel systeem
 - De art voor het husidier
 - Gezondheids systeem
-- Variabelen hunger, energy, happiness en health
+- Variabelen fullness, energy, happiness en health
 - Een stats save systeem (localStorage)
 - Achtergrond elementen (bank, klok, TV, etc)
 - Knoppen om de scene te veranderen
@@ -16,7 +16,7 @@ Status balken:
 
 - Health: Green (high) > Red (low)
 - Happiness: Yellow (high) > Blue (low)
-- Hunger: Lighter Brown (high) > Darker Brown (low)
+- Fullness: Lighter Brown (high) > Darker Brown (low)
 - Energy: Brighter Pink (high) > Darker Purple (low)
 
 Animatie regels:

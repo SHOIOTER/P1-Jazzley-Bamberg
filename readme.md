@@ -11,6 +11,7 @@ Dit project bevat een basisstructuur voor verschillende opdrachten en oefeningen
 Je kunt dit project draaien met de p5.js extension en Live Server in Visual Studio Code.
 
 Stappen:
+
 1. Open de map in Visual Studio Code.
 2. Installeer de p5.js extension.
 3. Start Live Server.
@@ -19,7 +20,7 @@ Stappen:
 
 ## Project aanmaken
 
-Je moet dit project __forken__ en een duidelijke naam geven aan het project. Een goede naam is bijvoorbeeld:
+Je moet dit project **forken** en een duidelijke naam geven aan het project. Een goede naam is bijvoorbeeld:
 
 - p1-[voornaam]-[achternaam]
 - p1-[student-nummer]
