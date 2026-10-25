@@ -49,12 +49,14 @@ const INFO_DATA = [
   {
     label: "Beroepsbeeld 3",
     header: "Welke houdingsaspecten zijn van belang binnen mijn beroep (softskills)?",
-    text: "Het communiceren met je teamgenoten zodat jij en je team goed kunnen samen werken."
+    text: "Het communiceren met je teamgenoten zodat jij en je team goed kunnen samen werken. Netjes bijhouden wat je allemaal hebt gedaan.",
+    image: "talking-people.png"
   },
   {
     label: "Beroepsbeeld 4",
     header: "Welke werkprocessen moet ik beheersen voor mijn vak?",
-    text: "Ik moet weten hoe ik in bepaalde programeertalen moet programeren, hoe ik alle bestanden goed organiseer op mijn computer, en het plannen van dingen die ik moet regelen en doen."
+    text: "Ik moet weten hoe ik in bepaalde programeertalen moet programeren, hoe ik alle bestanden goed organiseer op mijn computer, en het plannen en bijhouden van dingen die ik moet regelen en doen.",
+    image: "csharp-logo.png"
   },
   {
     label: "Beroepsbeeld 5",
@@ -78,28 +80,28 @@ const INFO_DATA = [
     label: "Werkveld 1",
     header:
       "Bij welke bedrijven binnen mijn vakgebied zou ik wel willen werken? Waarom lijken deze bedrijven mij zo leuk?",
-    text: "8"
+    text: "W1"
   },
   {
     label: "Werkveld 2",
     header: "Op wat voor functie zou ik zelf graag solliciteren?",
-    text: "9"
+    text: "W2"
   },
   {
     label: "Werkveld 3",
     header: "Wat zijn, binnen mijn vakgebied, interessante innovaties/ontwikkelingen om in de gaten te houden?",
-    text: "10"
+    text: "W3"
   },
   {
     label: "Werkveld 4",
     header: "Welke kennis/vaardigheden worden, naar verwachting, steeds relevanter binnen mijn vakgebied?",
-    text: "11"
+    text: "W4"
   },
   {
     label: "Werkveld 5",
     header:
       "Hoe verwacht ik dat mijn vakgebied er over 5 jaar uitziet? Wat is er anders ten opzichte van nu? En wat is hetzelfde gebleven?",
-    text: "12"
+    text: "W5"
   }
 ];
 
