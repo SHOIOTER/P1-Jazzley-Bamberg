@@ -49,48 +49,48 @@ const INFO_DATA = [
   {
     label: "Beroepsbeeld 3",
     header: "Welke houdingsaspecten zijn van belang binnen mijn beroep (softskills)?",
-    text: "Het communiceren met je teamgenoten zodat jij en je team goed kunnen samen werken. Netjes bijhouden wat je allemaal hebt gedaan.",
+    text: "Het samenwerken met anderen is belangrijk. Het communiceren met je teamgenoten zodat jij en je team goed kunnen samen werken. Netjes bijhouden wat je allemaal hebt gedaan.",
     image: "talking-people.png"
   },
   {
     label: "Beroepsbeeld 4",
     header: "Welke werkprocessen moet ik beheersen voor mijn vak?",
-    text: "Ik moet weten hoe ik in bepaalde programeertalen moet programeren, hoe ik alle bestanden goed organiseer op mijn computer, en het plannen en bijhouden van dingen die ik moet regelen en doen.",
+    text: "Ik moet werkzaamheden kunnen plannen en de voortgang bijhouden. Het bedenken en ontwerpen van software. De software maken, en het ook gaan uittesten. En het verbeteren van de software als dat mogelijk is. Maar ook moet ik gesprekken kunnen voeren en overleggen, het presenteren van het werk dat ik opgeleverd heb, en ten slotte reflecteren op het gemaakte werk.",
     image: "csharp-logo.png"
   },
   {
     label: "Beroepsbeeld 5",
     header: "Welke werkprocessen ontwikkel ik nu al tijdens mijn opleiding?",
-    text: "Het organiseren van bepaalde delen in code, het gebruiken van photoshop, en het goed omgaan het mijn computer.",
+    text: "Het ontwerpen van projecten, de projecten aanmaken, en het uittesten. Ook probeer ik mijn projecten te verbeteren als het beter kan. En ik reflecteer op mijn gemaakte werk.",
     image: "virtual-pet-code.png"
   },
   {
     label: "Beroepsbeeld 6",
     header: "Welke werkprocessen beheers ik al heel goed?",
-    text: "Ik kan al goed de logica van bepaalde dingen laten werken in mijn projecten. Ik weet ook al hoe ik code op een nette en gestructueerde manier kan schrijven, het goed kan organiseren, en het uitbreidbaar kan maken.",
+    text: "Ik ben goed in het bedenken en maken van projecten, en ik vind het ook leuk om dingen te verbeteren als het beter kan. Ook test ik mijn projecten vaak om te kijken of alles wel werkt.",
     video: "tic-tac-toe.mp4"
   },
   {
     label: "Beroepsbeeld 7",
     header: "Welke werkprocessen vind ik nog lastig? Wat ga ik doen om deze verder te ontwikkelen?",
-    text: "Ik heb nog een beetje moeite met opmaak, ik weet soms niet hoe ik een bepaalde menu er mooi uit kan laten zien. Het duurde mij eventjes voordat ik een layout voor de quiz had uitgevogelt. Ik ga dit proberen te verbeteren door te kijken naar voorbeelden en mij daar door te laten inspireren, en misschien kan ik dan zelf ook iets bedenken.",
+    text: "Ik vind het nog lastig om dingen te presenteren omdat ik soms niet zo goed ben in dingen uitleggen.",
     video: "quiz.mp4"
   },
   {
     label: "Werkveld 1",
     header:
       "Bij welke bedrijven binnen mijn vakgebied zou ik wel willen werken? Waarom lijken deze bedrijven mij zo leuk?",
-    text: "W1"
+    text: "Dutch Game Garden, omdat het dichtbij is."
   },
   {
     label: "Werkveld 2",
     header: "Op wat voor functie zou ik zelf graag solliciteren?",
-    text: "W2"
+    text: "Game Developer."
   },
   {
     label: "Werkveld 3",
     header: "Wat zijn, binnen mijn vakgebied, interessante innovaties/ontwikkelingen om in de gaten te houden?",
-    text: "W3"
+    text: "NPCs die AI gestuurd zijn, en AI dat terrain kan genereren."
   },
   {
     label: "Werkveld 4",

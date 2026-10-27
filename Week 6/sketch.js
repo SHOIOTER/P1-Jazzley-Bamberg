@@ -4,10 +4,13 @@ const WINDOW_WIDTH = 960;
 const WINDOW_HEIGHT = 720;
 
 const CENTER_POS_X = WINDOW_WIDTH / 2;
+const CENTER_POS_Y = WINDOW_HEIGHT / 2;
 
 const ASSET_FOLDER = "./assets";
 
 let buttonPressSound;
+let insufficientPointsSound;
+let saveGameSound;
 
 const ELEMENT_BORDER_RADIUS = "15px";
 const ELEMENT_BORDER_WIDTH = "5px";
@@ -43,38 +46,80 @@ const PET_ANIMATIONS = {
     looped: true
   },
   hungryIdle: {
-    track: "ultraman.mp4",
+    track: ["main-idle.webm", "main-idle.mov"],
     looped: true
   },
   sadIdle: {
-    track: "ultraman.mp4",
+    track: ["main-idle.webm", "main-idle.mov"],
     looped: true
   },
   sleepyIdle: {
-    track: "ultraman.mp4",
+    track: ["main-idle.webm", "main-idle.mov"],
     looped: true
   },
   deathIdle: {
-    track: "ultraman.mp4",
+    track: ["main-idle.webm", "main-idle.mov"],
     looped: true
   },
-  eatAnim: { track: "ultraman.mp4" },
-  happyAnim: { track: "ultraman.mp4" },
-  dieAnim: { track: "ultraman.mp4" }
+  eatAnim: { track: ["main-idle.webm", "main-idle.mov"] },
+  happyAnim: { track: ["main-idle.webm", "main-idle.mov"] },
+  dieAnim: { track: ["main-idle.webm", "main-idle.mov"] }
 };
 
 let petAnimator;
 
 const STATS_MAX_VALUE = 100;
-const STATS_SAVE_FREQUENCY = 30000;
+const STATS_SAVE_INTERVAL = 30000;
 const STATS_SAVE_COOLDOWN = 2000;
 const STATS_STORE_KEY = "Stats";
+const STATS_EXPRESSION_THRESHOLD = 30;
 const STATS_DEFAULT = {
   fullness: STATS_MAX_VALUE,
   energy: STATS_MAX_VALUE,
   happiness: STATS_MAX_VALUE,
-  health: STATS_MAX_VALUE
+  health: STATS_MAX_VALUE,
+  foodPackets: 5,
+  medicine: 1
 };
+
+const FULLNESS_DRAIN_SPEED = 0.0015;
+const ENERGY_DRAIN_SPEED = 0.00075;
+const HAPPINESS_DRAIN_SPEED = 0.001;
+const HEALTH_DRAIN_SPEED = 0;
+
+const ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00025;
+const ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION = 0.00015;
+const ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.0001;
+
+const ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
+
+const ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION = 0.00015;
+
+const SLEEP_ENERGY_GAIN_SPEED = 0.001;
+const SLEEP_HEALTH_GAIN_SPEED = 0.00075;
+
+const FEED_BUTTON_STRING = "FEED";
+const FEED_BUTTON_WIDTH = 200;
+const FEED_BUTTON_HEIGHT = 50;
+const FEED_BUTTON_POS_X = CENTER_POS_X - FEED_BUTTON_WIDTH / 2 + PAGE_TO_CANVAS_DIST;
+const FEED_BUTTON_POS_Y = WINDOW_HEIGHT - FEED_BUTTON_HEIGHT - 15 + PAGE_TO_CANVAS_DIST;
+const FEED_BUTTON_TEXT_SIZE = "30px";
+const FEED_BUTTON_FULLNESS_ADDITION = 10;
+
+const SLEEP_BUTTON_STRING = "TOGGLE SLEEP";
+const SLEEP_BUTTON_WIDTH = 200;
+const SLEEP_BUTTON_HEIGHT = 50;
+const SLEEP_BUTTON_POS_X = 15 + PAGE_TO_CANVAS_DIST;
+const SLEEP_BUTTON_POS_Y = CENTER_POS_Y - SLEEP_BUTTON_HEIGHT / 2 + PAGE_TO_CANVAS_DIST;
+const SLEEP_BUTTON_TEXT_SIZE = "22px";
+
+const MEDICINE_BUTTON_STRING = "GIVE MEDICINE";
+const MEDICINE_BUTTON_WIDTH = 200;
+const MEDICINE_BUTTON_HEIGHT = 50;
+const MEDICINE_BUTTON_POS_X = WINDOW_WIDTH - MEDICINE_BUTTON_WIDTH - 15 + PAGE_TO_CANVAS_DIST;
+const MEDICINE_BUTTON_POS_Y = CENTER_POS_Y - SLEEP_BUTTON_HEIGHT / 2 + PAGE_TO_CANVAS_DIST;
+const MEDICINE_BUTTON_TEXT_SIZE = "22px";
+const MEDICINE_BUTTON_HEALTH_ADDITION = 20;
 
 const FULLNESS_STING = "FULLNESS";
 const ENERGY_STRING = "ENERGY";
@@ -85,6 +130,18 @@ const SAVE_TEXT_STRING = "Game saved!";
 const SAVE_TEXT_SIZE = 50;
 const SAVE_TEXT_POS_Y = 50;
 const SAVE_TEXT_STROKE_WEIGHT = 4;
+
+const NO_FOOD_TEXT_STRING = "Not enough food packets";
+const NO_FOOD_TEXT_SIZE = 30;
+const NO_FOOD_TEXT_POS_Y = 50;
+const NO_FOOD_TEXT_STROKE_WEIGHT = 4;
+const NO_FOOD_TEXT_DURATION = 1000;
+
+const NO_MEDICINE_TEXT_STRING = "Not enough medicine";
+const NO_MEDICINE_TEXT_SIZE = 40;
+const NO_MEDICINE_TEXT_POS_Y = 50;
+const NO_MEDICINE_TEXT_STROKE_WEIGHT = 4;
+const NO_MEDICINE_TEXT_DURATION = 1000;
 
 const SAVE_BUTTON_STRING = "SAVE GAME";
 const SAVE_BUTTON_WIDTH = 150;
@@ -106,13 +163,35 @@ const STAT_BAR_TEXT_STROKE_WEIGHT = 2;
 const STAT_BAR_TEXT_OFFSET_X = STAT_BAR_LENGTH / 2;
 const STAT_BAR_TEXT_OFFSET_Y = STAT_BAR_HEIGHT / 2;
 
+const POINT_INDICATOR_SPACING = 40;
+const POINT_INDICATOR_POS_X = 15;
+const POINT_INDICATOR_ORIGIN_Y = 20;
+const POINT_INDICATOR_TEXT_SIZE = 30;
+const POINT_INDICATOR_TEXT_STROKE_WEIGHT = 3;
+
+const FOOD_PACKET_TEXT_STRING = "FOOD PACKETS";
+
+const MEDICINE_TEXT_STRING = "MEDICINE";
+
 let fullness;
 let energy;
 let happiness;
 let health;
+let foodPackets;
+let medicine;
 
-let statsLastSave = 0;
+let feedButton;
+let sleepButton;
+let medicineButton;
+
+let isSleeping = false;
+let isDead = false;
+let inScene;
+
 let statsSaveDebounce = true;
+
+let showNoFoodText = false;
+let showNoMedicineText = false;
 
 let backgroundBarColor;
 let statBarTextColor;
@@ -126,7 +205,14 @@ let happinessBarMaxColor;
 let healthBarMinColor;
 let healthBarMaxColor;
 
+let lightsOffTintColor;
+
 let saveTextColor;
+let noFoodTextColor;
+let noMedicineTextColor;
+
+let foodPacketTextColor;
+let medicineTextColor;
 
 const START_BUTTON_STRING = "START GAME!";
 const START_BUTTON_WIDTH = 300;
@@ -140,6 +226,12 @@ let onMenu = true;
 function preload() {
   buttonPressSound = loadSound(getFilePath(ASSET_FOLDER, "button-press.mp3"));
   buttonPressSound.setVolume(0.8);
+
+  insufficientPointsSound = loadSound(getFilePath(ASSET_FOLDER, "insufficient-points.mp3"));
+  insufficientPointsSound.setVolume(1.25);
+
+  saveGameSound = loadSound(getFilePath(ASSET_FOLDER, "game-save.mp3"));
+  saveGameSound.setVolume(1.5);
 
   livingroomBackground = loadImage(getFilePath(ASSET_FOLDER, "livingroom.jpg"));
   kitchenBackground = loadImage(getFilePath(ASSET_FOLDER, "kitchen.webp"));
@@ -173,6 +265,8 @@ function setup() {
   energy = gameStats.energy;
   happiness = gameStats.happiness;
   health = gameStats.health;
+  foodPackets = gameStats.foodPackets;
+  medicine = gameStats.medicine;
 
   // Assigning the stat bar colors
 
@@ -188,9 +282,23 @@ function setup() {
   healthBarMinColor = color(255, 0, 0);
   healthBarMaxColor = color(0, 215, 0);
 
+  // The color that appears in the dark
+
+  lightsOffTintColor = color(100, 100, 100);
+
   // The color of the save indicator that pops up when saving the game
 
   saveTextColor = color(0, 225, 255);
+
+  // The color of the no food text
+
+  noFoodTextColor = color(255, 255, 0);
+  noMedicineTextColor = color(255, 0, 255);
+
+  // The color of the food packet indicator
+
+  foodPacketTextColor = color(255, 155, 0);
+  medicineTextColor = color(0, 155, 255);
 
   // Creating the room selector, which makes you able to change scenes
 
@@ -220,30 +328,99 @@ function setup() {
 
   roomSelector.changed(() => {
     currentScene = roomSelector.selected();
-
-    switch (currentScene) {
-      case LIVINGROOM_SCENE:
-        console.log("Scene switched to livingroom!");
-        break;
-      case KITCHEN_SCENE:
-        console.log("Scene switched to kitchen!");
-        break;
-      case BATHROOM_SCENE:
-        console.log("Scene switched to bathroom!");
-        break;
-      case BEDROOM_SCENE:
-        console.log("Scene switched to bedroom!");
-        break;
-      default:
-        console.warn("Scene switched to an unknown scene");
-    }
-
+    setupRoom();
     buttonPressSound.play();
   });
 
   roomSelector.hide();
 
   styleElement(roomSelector, ROOM_SELECTOR_TEXT_SIZE);
+
+  // Creating a feeding button
+
+  feedButton = createButton(FEED_BUTTON_STRING);
+
+  // Placing and sizing it
+
+  feedButton.position(FEED_BUTTON_POS_X, FEED_BUTTON_POS_Y);
+  feedButton.size(FEED_BUTTON_WIDTH, FEED_BUTTON_HEIGHT);
+
+  // Making it add fullness when feeding
+
+  feedButton.mouseClicked(() => {
+    if (foodPackets > 0) {
+      foodPackets--;
+
+      addFullness(FEED_BUTTON_FULLNESS_ADDITION);
+      petAnimator.play("eatAnim");
+
+      buttonPressSound.play();
+    } else if (!showNoFoodText) {
+      showNoFoodText = true;
+
+      setTimeout(() => (showNoFoodText = false), NO_FOOD_TEXT_DURATION);
+      insufficientPointsSound.play();
+    }
+  });
+
+  feedButton.hide();
+
+  styleElement(feedButton, FEED_BUTTON_TEXT_SIZE);
+
+  // Creating sleep buttob
+
+  sleepButton = createButton(SLEEP_BUTTON_STRING);
+
+  // Placing and sizing
+
+  sleepButton.position(SLEEP_BUTTON_POS_X, SLEEP_BUTTON_POS_Y);
+  sleepButton.size(SLEEP_BUTTON_WIDTH, SLEEP_BUTTON_HEIGHT);
+
+  // Toggling sleep mode
+
+  sleepButton.mouseClicked(() => {
+    isSleeping = !isSleeping;
+
+    if (isSleeping) inScene = BEDROOM_SCENE;
+    else inScene = null;
+
+    buttonPressSound.play();
+  });
+
+  sleepButton.hide();
+
+  styleElement(sleepButton, SLEEP_BUTTON_TEXT_SIZE);
+
+  // Creating medicine button
+
+  medicineButton = createButton(MEDICINE_BUTTON_STRING);
+
+  // Placement
+
+  medicineButton.position(MEDICINE_BUTTON_POS_X, MEDICINE_BUTTON_POS_Y);
+  medicineButton.size(MEDICINE_BUTTON_WIDTH, MEDICINE_BUTTON_HEIGHT);
+
+  // Adding health
+
+  medicineButton.mouseClicked(() => {
+    if (medicine > 0) {
+      medicine--;
+
+      addHealth(MEDICINE_BUTTON_HEALTH_ADDITION);
+      petAnimator.play("eatAnim");
+
+      buttonPressSound.play();
+    } else if (!showNoMedicineText) {
+      showNoMedicineText = true;
+
+      setTimeout(() => (showNoMedicineText = false), NO_MEDICINE_TEXT_DURATION);
+      insufficientPointsSound.play();
+    }
+  });
+
+  medicineButton.hide();
+
+  styleElement(medicineButton, MEDICINE_BUTTON_TEXT_SIZE);
 
   // Creating a new button for manual stat saving
 
@@ -257,8 +434,7 @@ function setup() {
   // Saving the stats when you click on the button
 
   saveButton.mouseClicked(() => {
-    saveStats();
-    buttonPressSound.play();
+    if (!saveStats()) buttonPressSound.play();
   });
 
   saveButton.hide();
@@ -276,10 +452,12 @@ function setup() {
 
   startButton.mouseClicked(() => {
     onMenu = false;
+
+    setupRoom();
     startButton.hide();
     roomSelector.show();
     saveButton.show();
-    petAnimator.play("mainIdle");
+
     buttonPressSound.play();
   });
 
@@ -291,6 +469,12 @@ function setup() {
   kitchenBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
   bathroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
   bedroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+  // Making the game save every interval
+
+  setInterval(() => {
+    if (!onMenu) saveStats();
+  }, STATS_SAVE_INTERVAL);
 }
 
 function draw() {
@@ -302,6 +486,12 @@ function draw() {
     // Rendering the core background
 
     background(220);
+
+    push();
+
+    if (isSleeping) {
+      tint(lightsOffTintColor);
+    }
 
     // Rendering the current scene
 
@@ -325,7 +515,11 @@ function draw() {
 
     // Rendering the pet
 
-    petAnimator.render(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    if (!inScene || currentScene === inScene) {
+      petAnimator.render(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    }
+
+    pop();
 
     // Rendering the stat bars
 
@@ -333,6 +527,11 @@ function draw() {
     drawStatBar(ENERGY_STRING, energy, energyBarMinColor, energyBarMaxColor, 1);
     drawStatBar(HAPPINESS_STRING, happiness, happinessBarMinColor, happinessBarMaxColor, 2);
     drawStatBar(HEALTH_STRING, health, healthBarMinColor, healthBarMaxColor, 3);
+
+    // Displaying the point indicators
+
+    drawPointIndicator(FOOD_PACKET_TEXT_STRING, foodPackets, foodPacketTextColor);
+    drawPointIndicator(MEDICINE_TEXT_STRING, medicine, medicineTextColor, 1);
 
     // Displaying an indicator that tells you that the game has been saved
 
@@ -348,15 +547,108 @@ function draw() {
       pop();
     }
 
-    // Draining the stats over time
+    if (showNoFoodText) {
+      push();
 
-    // The code I will make later
+      stroke(0);
+      strokeWeight(NO_FOOD_TEXT_STROKE_WEIGHT);
+      fill(noFoodTextColor);
+      textSize(NO_FOOD_TEXT_SIZE);
+      text(NO_FOOD_TEXT_STRING, CENTER_POS_X, NO_FOOD_TEXT_POS_Y);
 
-    // Saving the stats every frequency
-
-    if (millis() - statsLastSave >= STATS_SAVE_FREQUENCY) {
-      saveStats();
+      pop();
     }
+
+    if (showNoMedicineText) {
+      push();
+
+      stroke(0);
+      strokeWeight(NO_MEDICINE_TEXT_STROKE_WEIGHT);
+      fill(noMedicineTextColor);
+      textSize(NO_MEDICINE_TEXT_SIZE);
+      text(NO_MEDICINE_TEXT_STRING, CENTER_POS_X, NO_MEDICINE_TEXT_POS_Y);
+
+      pop();
+    }
+
+    let energyDrainSpeed = (isSleeping && -SLEEP_ENERGY_GAIN_SPEED) || ENERGY_DRAIN_SPEED;
+    let happinessDrainSpeed = HAPPINESS_DRAIN_SPEED;
+    let healthDrainSpeed = (isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED;
+
+    // Modifying the stat drain speeds based on other stats
+
+    if (energy === 0) healthDrainSpeed += ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION;
+    if (happiness === 0) healthDrainSpeed += ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION;
+    if (fullness === 0) {
+      energyDrainSpeed += ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION;
+      happinessDrainSpeed += ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION;
+      healthDrainSpeed += ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION;
+    }
+
+    // Draining the stats over time and based on some other factors
+
+    addFullness(-FULLNESS_DRAIN_SPEED * deltaTime);
+    if (energyDrainSpeed !== 0) addEnergy(-energyDrainSpeed * deltaTime);
+    if (!isSleeping && happinessDrainSpeed !== 0) addHappiness(-happinessDrainSpeed * deltaTime);
+    if (healthDrainSpeed !== 0) addHealth(-healthDrainSpeed * deltaTime);
+
+    if (isSleeping || energy <= STATS_EXPRESSION_THRESHOLD) {
+      petAnimator.play("sleepyIdle");
+    } else if (happiness <= STATS_EXPRESSION_THRESHOLD || health <= STATS_EXPRESSION_THRESHOLD) {
+      petAnimator.play("sadIdle");
+    } else if (fullness <= STATS_EXPRESSION_THRESHOLD) {
+      petAnimator.play("hungryIdle");
+    } else {
+      petAnimator.play("mainIdle");
+    }
+  }
+}
+
+function keyPressed() {
+  switch (key) {
+    case "f":
+      foodPackets++;
+      buttonPressSound.play();
+      break;
+    case "r":
+      removeItem(STATS_STORE_KEY);
+      window.location.reload();
+      break;
+    case "m":
+      medicine++;
+      buttonPressSound.play();
+      break;
+    case "h":
+      addHappiness(5);
+      buttonPressSound.play();
+  }
+}
+
+function setupRoom() {
+  feedButton.hide();
+  sleepButton.hide();
+  medicineButton.hide();
+
+  let showButtons = !isSleeping && !isDead;
+
+  switch (currentScene) {
+    case LIVINGROOM_SCENE:
+      console.log("Scene switched to livingroom!");
+      break;
+    case KITCHEN_SCENE:
+      if (showButtons) feedButton.show();
+      console.log("Scene switched to kitchen!");
+      break;
+    case BATHROOM_SCENE:
+      if (showButtons) medicineButton.show();
+      console.log("Scene switched to bathroom!");
+      break;
+    case BEDROOM_SCENE:
+      sleepButton.show();
+      console.log("Scene switched to bedroom!");
+      break;
+    default:
+      console.warn("Scene switched to an unknown scene");
   }
 }
 
@@ -409,20 +701,60 @@ function drawStatBar(label, value, minColor, maxColor, stackIndex = 0) {
   pop();
 }
 
+function drawPointIndicator(label, value, textColor, stackIndex = 0) {
+  push();
+
+  stroke(0);
+  strokeWeight(POINT_INDICATOR_TEXT_STROKE_WEIGHT);
+  fill(textColor);
+  textAlign(LEFT, TOP);
+  textSize(POINT_INDICATOR_TEXT_SIZE);
+  text(`${label}: ${value}`, POINT_INDICATOR_POS_X, POINT_INDICATOR_ORIGIN_Y + POINT_INDICATOR_SPACING * stackIndex);
+
+  pop();
+}
+
+function clampStat(value) {
+  return constrain(value, 0, STATS_MAX_VALUE);
+}
+
+function addHealth(amount) {
+  health = clampStat(health + amount);
+}
+
+function addHappiness(amount) {
+  happiness = clampStat(happiness + amount);
+}
+
+function addEnergy(amount) {
+  energy = clampStat(energy + amount);
+}
+
+function addFullness(amount) {
+  fullness = clampStat(fullness + amount);
+}
+
 function saveStats() {
   if (statsSaveDebounce) {
     statsSaveDebounce = false;
-    statsLastSave = millis();
 
     storeItem(STATS_STORE_KEY, {
       fullness,
       energy,
       happiness,
-      health
+      health,
+      foodPackets,
+      medicine
     });
 
     setTimeout(() => (statsSaveDebounce = true), STATS_SAVE_COOLDOWN);
+
+    saveGameSound.play();
+
+    return true;
   }
+
+  return false;
 }
 
 // A function to easily construct a full file path
@@ -486,37 +818,34 @@ class AnimationPlayer {
   // Plays the animation
 
   play(name, force) {
+    let animations = this.animations;
     let playingTrack = this.playingTrack;
+    let currentAnimation = animations[playingTrack];
+    let newAnimation = animations[name];
+    let isLooped = newAnimation.looped;
 
-    if (name !== playingTrack) {
-      let animations = this.animations;
-      let currentAnimation = animations[playingTrack];
-      let newAnimation = animations[name];
-      let isLooped = newAnimation.looped;
+    // Overwrites the currentIdle when the new anim is an idle animation
 
-      // Overwrites the currentIdle when the new anim is an idle animation
+    if (isLooped) {
+      this.loopingTrack = name;
+    }
 
-      if (isLooped) {
-        this.loopingTrack = name;
+    /*
+      Will only instantly overwrite the animation when conditions are met
+      Either the force parameter must be true (makes sure it will overwrite the anim no matter what)
+      It has to be an action anim
+      There was no previous animation
+      Or both the old and new animation were idle animations
+    */
+
+    if (force || !isLooped || !currentAnimation || (isLooped && currentAnimation.looped && name !== playingTrack)) {
+      this.playingTrack = name;
+
+      if (currentAnimation) {
+        currentAnimation.track.stop();
       }
 
-      /*
-        Will only instantly overwrite the animation when conditions are met
-        Either the force parameter must be true (makes sure it will overwrite the anim no matter what)
-        It has to be an action anim
-        There was no previous animation
-        Or both the old and new animation were idle animations
-      */
-
-      if (force || !isLooped || !currentAnimation || (currentAnimation.looped && isLooped)) {
-        this.playingTrack = name;
-
-        if (currentAnimation) {
-          currentAnimation.track.stop();
-        }
-
-        newAnimation.track.play();
-      }
+      newAnimation.track.play();
     }
   }
 
