@@ -7,10 +7,13 @@ const CENTER_POS_X = WINDOW_WIDTH / 2;
 const CENTER_POS_Y = WINDOW_HEIGHT / 2;
 
 const ASSET_FOLDER = "./assets";
+const ESSENTIALS_IMAGE_FOLDER = "../Essentials/images";
 
 let buttonPressSound;
 let insufficientPointsSound;
 let saveGameSound;
+let dieSound;
+let menuAudio;
 
 const ELEMENT_BORDER_RADIUS = "15px";
 const ELEMENT_BORDER_WIDTH = "5px";
@@ -33,7 +36,8 @@ const ROOM_SELECTOR_POS_X = WINDOW_WIDTH - ROOM_SELECTOR_WIDTH - ROOM_SELECTOR_B
 const ROOM_SELECTOR_POS_Y = ROOM_SELECTOR_BOUND_DIST + PAGE_TO_CANVAS_DIST;
 const ROOM_SELECTOR_TEXT_SIZE = "22px";
 
-let currentScene = LIVINGROOM_SCENE;
+let currentScene;
+let roomSelector;
 
 let livingroomBackground;
 let kitchenBackground;
@@ -63,6 +67,7 @@ const PET_ANIMATIONS = {
   },
   eatAnim: { track: ["main-idle.webm", "main-idle.mov"] },
   happyAnim: { track: ["main-idle.webm", "main-idle.mov"] },
+  punchAnim: { track: ["main-idle.webm", "main-idle.mov"] },
   dieAnim: { track: ["main-idle.webm", "main-idle.mov"] }
 };
 
@@ -79,24 +84,35 @@ const STATS_DEFAULT = {
   happiness: STATS_MAX_VALUE,
   health: STATS_MAX_VALUE,
   foodPackets: 5,
-  medicine: 1
+  medicine: 1,
+  currentScene: LIVINGROOM_SCENE,
+  isSleeping: false,
+  isDead: false
 };
 
-const FULLNESS_DRAIN_SPEED = 0.0015;
+const RESTART_DELAY = 400;
+
+const FULLNESS_DRAIN_SPEED = 0.001;
 const ENERGY_DRAIN_SPEED = 0.00075;
 const HAPPINESS_DRAIN_SPEED = 0.001;
 const HEALTH_DRAIN_SPEED = 0;
 
-const ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00025;
-const ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION = 0.00015;
-const ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.0001;
+const PLAY_FULLNESS_DRAIN_ADDITION = 0.0005;
 
-const ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
+const ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00025;
+const ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION = 0.0002;
+const ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00015;
+
+const ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION = 0.00025;
+const LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
 
 const ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION = 0.00015;
+const PLAY_ENERGY_DRAIN_ADDITION = 0.00035;
 
-const SLEEP_ENERGY_GAIN_SPEED = 0.001;
+const SLEEP_ENERGY_GAIN_SPEED = 0.002;
 const SLEEP_HEALTH_GAIN_SPEED = 0.00075;
+
+const PLAY_HAPPINESS_GAIN_SPEED = 0.002;
 
 const FEED_BUTTON_STRING = "FEED";
 const FEED_BUTTON_WIDTH = 200;
@@ -104,7 +120,9 @@ const FEED_BUTTON_HEIGHT = 50;
 const FEED_BUTTON_POS_X = CENTER_POS_X - FEED_BUTTON_WIDTH / 2 + PAGE_TO_CANVAS_DIST;
 const FEED_BUTTON_POS_Y = WINDOW_HEIGHT - FEED_BUTTON_HEIGHT - 15 + PAGE_TO_CANVAS_DIST;
 const FEED_BUTTON_TEXT_SIZE = "30px";
-const FEED_BUTTON_FULLNESS_ADDITION = 10;
+const FEED_BUTTON_FULLNESS_ADDITION = 5;
+
+let eatSound;
 
 const SLEEP_BUTTON_STRING = "TOGGLE SLEEP";
 const SLEEP_BUTTON_WIDTH = 200;
@@ -119,7 +137,16 @@ const MEDICINE_BUTTON_HEIGHT = 50;
 const MEDICINE_BUTTON_POS_X = WINDOW_WIDTH - MEDICINE_BUTTON_WIDTH - 15 + PAGE_TO_CANVAS_DIST;
 const MEDICINE_BUTTON_POS_Y = CENTER_POS_Y - SLEEP_BUTTON_HEIGHT / 2 + PAGE_TO_CANVAS_DIST;
 const MEDICINE_BUTTON_TEXT_SIZE = "22px";
-const MEDICINE_BUTTON_HEALTH_ADDITION = 20;
+const MEDICINE_BUTTON_HEALTH_ADDITION = 10;
+
+let medicineTakeSound;
+
+const MINI_GAME_BUTTON_STRING = "TOGGLE MINI GAME";
+const MINI_GAME_BUTTON_WIDTH = 200;
+const MINI_GAME_BUTTON_HEIGHT = 50;
+const MINI_GAME_BUTTON_POS_X = CENTER_POS_X - MINI_GAME_BUTTON_WIDTH / 2 + PAGE_TO_CANVAS_DIST;
+const MINI_GAME_BUTTON_POS_Y = WINDOW_HEIGHT - MINI_GAME_BUTTON_HEIGHT - 15 + PAGE_TO_CANVAS_DIST;
+const MINI_GAME_BUTTON_TEXT_SIZE = "18px";
 
 const FULLNESS_STING = "FULLNESS";
 const ENERGY_STRING = "ENERGY";
@@ -151,6 +178,24 @@ const SAVE_BUTTON_POS_X = WINDOW_WIDTH - SAVE_BUTTON_WIDTH - SAVE_BUTTON_BOUND_D
 const SAVE_BUTTON_POS_Y = WINDOW_HEIGHT - SAVE_BUTTON_HEIGHT - SAVE_BUTTON_BOUND_DIST;
 const SAVE_BUTTON_TEXT_SIZE = "21px";
 
+const PUNCH_BUTTON_STRING = "PUNCH";
+const PUNCH_BUTTON_WIDTH = 150;
+const PUNCH_BUTTON_HEIGHT = 60;
+const PUNCH_BUTTON_BOUND_DIST = 15;
+const PUNCH_BUTTON_POS_X = WINDOW_WIDTH - PUNCH_BUTTON_WIDTH - PUNCH_BUTTON_BOUND_DIST + PAGE_TO_CANVAS_DIST;
+const PUNCH_BUTTON_POS_Y = SAVE_BUTTON_POS_Y - PUNCH_BUTTON_HEIGHT - PUNCH_BUTTON_BOUND_DIST;
+const PUNCH_BUTTON_TEXT_SIZE = "30px";
+const PUNCH_BUTTON_HEALTH_DRAIN = 5;
+const PUNCH_BUTTON_HAPPINESS_DRAIN = 10;
+
+const RESTART_BUTTON_STRING = "RESTART GAME";
+const RESTART_BUTTON_WIDTH = 200;
+const RESTART_BUTTON_HEIGHT = 60;
+const RESTART_BUTTON_BOUND_DIST = 15 - PAGE_TO_CANVAS_DIST;
+const RESTART_BUTTON_POS_X = WINDOW_WIDTH - RESTART_BUTTON_WIDTH - RESTART_BUTTON_BOUND_DIST;
+const RESTART_BUTTON_POS_Y = WINDOW_HEIGHT - RESTART_BUTTON_HEIGHT - RESTART_BUTTON_BOUND_DIST;
+const RESTART_BUTTON_TEXT_SIZE = "22px";
+
 const STAT_BAR_LENGTH = 250;
 const STAT_BAR_HEIGHT = 25;
 const STAT_BAR_SPACING = STAT_BAR_HEIGHT * 1.5;
@@ -180,12 +225,16 @@ let health;
 let foodPackets;
 let medicine;
 
+let saveButton;
 let feedButton;
 let sleepButton;
 let medicineButton;
+let miniGameButton;
+let punchButton;
+let restartButton;
 
-let isSleeping = false;
-let isDead = false;
+let isSleeping;
+let isDead;
 let inScene;
 
 let statsSaveDebounce = true;
@@ -214,6 +263,15 @@ let noMedicineTextColor;
 let foodPacketTextColor;
 let medicineTextColor;
 
+const GAME_TITLE_STRING = "Take care of Mr. Face";
+const GAME_TITLE_POS_Y = 150;
+const GAME_TITLE_SIZE = 80;
+const GAME_TITLE_STROKE_WEIGHT = 4;
+
+let gameTitleColor;
+
+let menuBackgroundColor;
+
 const START_BUTTON_STRING = "START GAME!";
 const START_BUTTON_WIDTH = 300;
 const START_BUTTON_HEIGHT = 150;
@@ -222,6 +280,25 @@ const START_BUTTON_POS_Y = 500;
 const START_BUTTON_TEXT_SIZE = "40px";
 
 let onMenu = true;
+let inMiniGame = false;
+
+const ITEM_SIZE = 150;
+const ITEM_FALL_SPEED = [0.4, 0.8];
+const ITEM_SPAWN_INTERVAL = [1000, 2500];
+const ITEM_LIST = [];
+const ITEM_DETECTION_RADIUS = ITEM_SIZE / 2;
+const ITEM_SPAWN_Y = -ITEM_DETECTION_RADIUS;
+const ITEM_DESPAWN_Y = WINDOW_HEIGHT + ITEM_DETECTION_RADIUS;
+const MEDICINE_CHANCE = 5;
+
+let miniGameBackgroundColor;
+
+let currentItemSpawnDuration;
+let lastItemSpawn = 0;
+
+let itemClaimSound;
+let foodPacketImage;
+let medicineImage;
 
 function preload() {
   buttonPressSound = loadSound(getFilePath(ASSET_FOLDER, "button-press.mp3"));
@@ -233,10 +310,26 @@ function preload() {
   saveGameSound = loadSound(getFilePath(ASSET_FOLDER, "game-save.mp3"));
   saveGameSound.setVolume(1.5);
 
+  dieSound = loadSound(getFilePath(ASSET_FOLDER, "pet-die.mp3"));
+
+  menuAudio = loadSound(getFilePath(ASSET_FOLDER, "menu-audio.mp3"));
+  menuAudio.setVolume(0.5);
+  menuAudio.setLoop(true);
+
+  eatSound = loadSound(getFilePath(ASSET_FOLDER, "pet-eat.mp3"));
+
+  medicineTakeSound = loadSound(getFilePath(ASSET_FOLDER, "pet-medicine-take.ogg"));
+
   livingroomBackground = loadImage(getFilePath(ASSET_FOLDER, "livingroom.jpg"));
   kitchenBackground = loadImage(getFilePath(ASSET_FOLDER, "kitchen.webp"));
   bathroomBackground = loadImage(getFilePath(ASSET_FOLDER, "bathroom.jpg"));
   bedroomBackground = loadImage(getFilePath(ASSET_FOLDER, "bedroom.jpg"));
+
+  itemClaimSound = loadSound(getFilePath(ASSET_FOLDER, "item-claim.mp3"));
+  itemClaimSound.setVolume(1.5);
+
+  foodPacketImage = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "food-pack.webp"));
+  medicineImage = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "medicine.png"));
 
   petAnimator = new AnimationPlayer(PET_ANIMATIONS);
 }
@@ -267,6 +360,10 @@ function setup() {
   health = gameStats.health;
   foodPackets = gameStats.foodPackets;
   medicine = gameStats.medicine;
+  currentScene = gameStats.currentScene;
+  isSleeping = gameStats.isSleeping;
+  isDead = gameStats.isDead;
+  inScene = gameStats.inScene;
 
   // Assigning the stat bar colors
 
@@ -288,7 +385,7 @@ function setup() {
 
   // The color of the save indicator that pops up when saving the game
 
-  saveTextColor = color(0, 225, 255);
+  saveTextColor = color(0, 200, 255);
 
   // The color of the no food text
 
@@ -300,9 +397,21 @@ function setup() {
   foodPacketTextColor = color(255, 155, 0);
   medicineTextColor = color(0, 155, 255);
 
+  // The color of the game title
+
+  gameTitleColor = color(0, 200, 255);
+
+  // The color of the menu's background
+
+  menuBackgroundColor = color(75, 175, 75);
+
+  // Mini game background color
+
+  miniGameBackgroundColor = color(0, 225, 255);
+
   // Creating the room selector, which makes you able to change scenes
 
-  const roomSelector = createSelect();
+  roomSelector = createSelect();
 
   // Positioning and sizing it correctly
 
@@ -345,19 +454,16 @@ function setup() {
   feedButton.position(FEED_BUTTON_POS_X, FEED_BUTTON_POS_Y);
   feedButton.size(FEED_BUTTON_WIDTH, FEED_BUTTON_HEIGHT);
 
-  // Making it add fullness when feeding
+  // Making it add fullness when feeding, if enough food packets
 
   feedButton.mouseClicked(() => {
     if (foodPackets > 0) {
       foodPackets--;
-
       addFullness(FEED_BUTTON_FULLNESS_ADDITION);
       petAnimator.play("eatAnim");
-
-      buttonPressSound.play();
+      eatSound.play();
     } else if (!showNoFoodText) {
       showNoFoodText = true;
-
       setTimeout(() => (showNoFoodText = false), NO_FOOD_TEXT_DURATION);
       insufficientPointsSound.play();
     }
@@ -381,8 +487,13 @@ function setup() {
   sleepButton.mouseClicked(() => {
     isSleeping = !isSleeping;
 
-    if (isSleeping) inScene = BEDROOM_SCENE;
-    else inScene = null;
+    if (isSleeping) {
+      inScene = BEDROOM_SCENE;
+      punchButton.hide();
+    } else {
+      inScene = null;
+      punchButton.show();
+    }
 
     buttonPressSound.play();
   });
@@ -400,19 +511,16 @@ function setup() {
   medicineButton.position(MEDICINE_BUTTON_POS_X, MEDICINE_BUTTON_POS_Y);
   medicineButton.size(MEDICINE_BUTTON_WIDTH, MEDICINE_BUTTON_HEIGHT);
 
-  // Adding health
+  // Adding health when clicked, if enough medicine
 
   medicineButton.mouseClicked(() => {
     if (medicine > 0) {
       medicine--;
-
       addHealth(MEDICINE_BUTTON_HEALTH_ADDITION);
       petAnimator.play("eatAnim");
-
-      buttonPressSound.play();
+      medicineTakeSound.play();
     } else if (!showNoMedicineText) {
       showNoMedicineText = true;
-
       setTimeout(() => (showNoMedicineText = false), NO_MEDICINE_TEXT_DURATION);
       insufficientPointsSound.play();
     }
@@ -422,9 +530,52 @@ function setup() {
 
   styleElement(medicineButton, MEDICINE_BUTTON_TEXT_SIZE);
 
+  // Play button
+
+  miniGameButton = createButton(MINI_GAME_BUTTON_STRING);
+
+  // Placement
+
+  miniGameButton.position(MINI_GAME_BUTTON_POS_X, MINI_GAME_BUTTON_POS_Y);
+  miniGameButton.size(MINI_GAME_BUTTON_WIDTH, MINI_GAME_BUTTON_HEIGHT);
+
+  // Making it switch to the mini game when clicking
+
+  miniGameButton.mouseClicked(() => {
+    toggleMiniGame();
+    buttonPressSound.play();
+  });
+
+  miniGameButton.hide();
+
+  styleElement(miniGameButton, MINI_GAME_BUTTON_TEXT_SIZE);
+
+  // Making the restart button
+
+  restartButton = createButton(RESTART_BUTTON_STRING);
+
+  // Placement
+
+  restartButton.position(RESTART_BUTTON_POS_X, RESTART_BUTTON_POS_Y);
+  restartButton.size(RESTART_BUTTON_WIDTH, RESTART_BUTTON_HEIGHT);
+
+  // Restarting the game
+
+  restartButton.mouseClicked(() => {
+    setTimeout(() => {
+      removeItem(STATS_STORE_KEY);
+      window.location.reload();
+    }, RESTART_DELAY);
+    buttonPressSound.play();
+  });
+
+  restartButton.hide();
+
+  styleElement(restartButton, RESTART_BUTTON_TEXT_SIZE);
+
   // Creating a new button for manual stat saving
 
-  const saveButton = createButton(SAVE_BUTTON_STRING);
+  saveButton = createButton(SAVE_BUTTON_STRING);
 
   // Also positioning this correctly
 
@@ -441,6 +592,28 @@ function setup() {
 
   styleElement(saveButton, SAVE_BUTTON_TEXT_SIZE);
 
+  // Creating the punch button
+
+  punchButton = createButton(PUNCH_BUTTON_STRING);
+
+  // Placement
+
+  punchButton.position(PUNCH_BUTTON_POS_X, PUNCH_BUTTON_POS_Y);
+  punchButton.size(PUNCH_BUTTON_WIDTH, PUNCH_BUTTON_HEIGHT);
+
+  // Making the pet punched when clicking
+
+  punchButton.mouseClicked(() => {
+    addHealth(-PUNCH_BUTTON_HEALTH_DRAIN);
+    addHappiness(-PUNCH_BUTTON_HAPPINESS_DRAIN);
+    petAnimator.play("punchAnim");
+    // Punch sound here
+  });
+
+  punchButton.hide();
+
+  styleElement(punchButton, PUNCH_BUTTON_TEXT_SIZE);
+
   const startButton = createButton(START_BUTTON_STRING);
 
   // Doing the same thing like with the other elements
@@ -454,9 +627,15 @@ function setup() {
     onMenu = false;
 
     setupRoom();
+    menuAudio.stop();
     startButton.hide();
     roomSelector.show();
-    saveButton.show();
+
+    if (isDead) restartButton.show();
+    else {
+      saveButton.show();
+      punchButton.show();
+    }
 
     buttonPressSound.play();
   });
@@ -470,56 +649,100 @@ function setup() {
   bathroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
   bedroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
+  // Resizing the items
+
+  foodPacketImage.resize(0, ITEM_SIZE);
+  medicineImage.resize(0, ITEM_SIZE);
+
   // Making the game save every interval
 
   setInterval(() => {
     if (!onMenu) saveStats();
   }, STATS_SAVE_INTERVAL);
+
+  // Playing the menu audio
+
+  menuAudio.play();
 }
 
 function draw() {
   // Rendering the game or the menu screen based on game state
 
   if (onMenu) {
-    background(220);
+    background(menuBackgroundColor);
+
+    push();
+    translate(CENTER_POS_X, GAME_TITLE_POS_Y);
+
+    stroke(0);
+    strokeWeight(GAME_TITLE_STROKE_WEIGHT);
+    fill(gameTitleColor);
+    textSize(GAME_TITLE_SIZE);
+    text(GAME_TITLE_STRING, 0, 0);
+
+    pop();
   } else {
     // Rendering the core background
 
-    background(220);
+    background(miniGameBackgroundColor);
 
-    push();
+    if (inMiniGame) {
+      for (const fallingItem of ITEM_LIST) {
+        fallingItem.display();
+      }
 
-    if (isSleeping) {
-      tint(lightsOffTintColor);
+      if (millis() - lastItemSpawn >= currentItemSpawnDuration) {
+        lastItemSpawn = millis();
+        currentItemSpawnDuration = random(ITEM_SPAWN_INTERVAL[0], ITEM_SPAWN_INTERVAL[1]);
+        let addNewItem = true;
+
+        // If there are any inactive falling items, it will reassign it's position in the array with a new one
+
+        for (let i = 0; i < ITEM_LIST.length; i++) {
+          if (!ITEM_LIST[i].active) {
+            addNewItem = false;
+            ITEM_LIST[i] = getNewFallingItem();
+            break;
+          }
+        }
+
+        // If there weren't any inactive ones, it will add a new item to the array
+
+        if (addNewItem) ITEM_LIST.push(getNewFallingItem());
+      }
+    } else {
+      push();
+
+      // Adding a tint if the pet is sleeping
+
+      if (isSleeping) {
+        tint(lightsOffTintColor);
+      }
+
+      // Rendering the current scene
+
+      switch (currentScene) {
+        case LIVINGROOM_SCENE:
+          drawLivingroom();
+          break;
+        case KITCHEN_SCENE:
+          drawKitchen();
+          break;
+        case BATHROOM_SCENE:
+          drawBathroom();
+          break;
+        case BEDROOM_SCENE:
+          drawBedroom();
+      }
+
+      // Rendering the pet if it should be visible in that scene
+
+      if (!inScene || currentScene === inScene) {
+        petAnimator.render(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+      }
+
+      pop();
     }
-
-    // Rendering the current scene
-
-    switch (currentScene) {
-      case LIVINGROOM_SCENE:
-        drawLivingroom();
-        break;
-      case KITCHEN_SCENE:
-        drawKitchen();
-        break;
-      case BATHROOM_SCENE:
-        drawBathroom();
-        break;
-      case BEDROOM_SCENE:
-        drawBedroom();
-        break;
-      default:
-        currentScene = LIVINGROOM_SCENE;
-        console.warn(`The current scene is reset to ${LIVINGROOM_SCENE} because it couldn't find a valid scene`);
-    }
-
-    // Rendering the pet
-
-    if (!inScene || currentScene === inScene) {
-      petAnimator.render(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    }
-
-    pop();
 
     // Rendering the stat bars
 
@@ -547,6 +770,8 @@ function draw() {
       pop();
     }
 
+    // Same as the game save indictor, but if there isn't any food
+
     if (showNoFoodText) {
       push();
 
@@ -558,6 +783,8 @@ function draw() {
 
       pop();
     }
+
+    // Also the same thing as the other one
 
     if (showNoMedicineText) {
       push();
@@ -571,14 +798,24 @@ function draw() {
       pop();
     }
 
+    // The starting drain speeds that will change based on some key factors
+
+    let fullnessDrainSpeed = FULLNESS_DRAIN_SPEED;
     let energyDrainSpeed = (isSleeping && -SLEEP_ENERGY_GAIN_SPEED) || ENERGY_DRAIN_SPEED;
-    let happinessDrainSpeed = HAPPINESS_DRAIN_SPEED;
+    let happinessDrainSpeed = (inMiniGame && -PLAY_HAPPINESS_GAIN_SPEED) || HAPPINESS_DRAIN_SPEED;
     let healthDrainSpeed = (isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED;
 
     // Modifying the stat drain speeds based on other stats
 
+    if (health <= STATS_EXPRESSION_THRESHOLD) happinessDrainSpeed += LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION;
     if (energy === 0) healthDrainSpeed += ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION;
     if (happiness === 0) healthDrainSpeed += ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION;
+
+    if (inMiniGame) {
+      energyDrainSpeed += PLAY_ENERGY_DRAIN_ADDITION;
+      fullnessDrainSpeed += PLAY_FULLNESS_DRAIN_ADDITION;
+    }
+
     if (fullness === 0) {
       energyDrainSpeed += ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION;
       happinessDrainSpeed += ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION;
@@ -587,12 +824,36 @@ function draw() {
 
     // Draining the stats over time and based on some other factors
 
-    addFullness(-FULLNESS_DRAIN_SPEED * deltaTime);
-    if (energyDrainSpeed !== 0) addEnergy(-energyDrainSpeed * deltaTime);
-    if (!isSleeping && happinessDrainSpeed !== 0) addHappiness(-happinessDrainSpeed * deltaTime);
-    if (healthDrainSpeed !== 0) addHealth(-healthDrainSpeed * deltaTime);
+    if (!isDead) {
+      addFullness(-fullnessDrainSpeed * deltaTime);
+      if (energyDrainSpeed !== 0) addEnergy(-energyDrainSpeed * deltaTime);
+      if (!isSleeping && happinessDrainSpeed !== 0) addHappiness(-happinessDrainSpeed * deltaTime);
+      if (healthDrainSpeed !== 0) addHealth(-healthDrainSpeed * deltaTime);
+    }
 
-    if (isSleeping || energy <= STATS_EXPRESSION_THRESHOLD) {
+    // Making the character die if the health is zero
+
+    if (!isDead && health === 0) {
+      isDead = true;
+      inScene = currentScene;
+
+      saveButton.hide();
+      punchButton.hide();
+      restartButton.show();
+
+      setupRoom();
+      if (inMiniGame) toggleMiniGame();
+      saveStats();
+
+      petAnimator.play("dieAnim");
+      dieSound.play();
+    }
+
+    // Toggling the idle animations based on stats
+
+    if (isDead) {
+      petAnimator.play("deathIdle");
+    } else if (isSleeping || energy <= STATS_EXPRESSION_THRESHOLD) {
       petAnimator.play("sleepyIdle");
     } else if (happiness <= STATS_EXPRESSION_THRESHOLD || health <= STATS_EXPRESSION_THRESHOLD) {
       petAnimator.play("sadIdle");
@@ -604,23 +865,49 @@ function draw() {
   }
 }
 
-function keyPressed() {
-  switch (key) {
-    case "f":
-      foodPackets++;
-      buttonPressSound.play();
-      break;
-    case "r":
-      removeItem(STATS_STORE_KEY);
-      window.location.reload();
-      break;
-    case "m":
-      medicine++;
-      buttonPressSound.play();
-      break;
-    case "h":
-      addHappiness(5);
-      buttonPressSound.play();
+function mouseClicked() {
+  if (inMiniGame) {
+    for (const fallingItem of ITEM_LIST) {
+      fallingItem.checkClick();
+    }
+  }
+}
+
+function getNewFallingItem() {
+  let isMedicine = random(0, 100) <= MEDICINE_CHANCE;
+  return new FallingItem(
+    (isMedicine && medicineImage) || foodPacketImage,
+    (isMedicine && addMedicine) || addFoodPackets
+  );
+}
+
+function toggleMiniGame() {
+  inMiniGame = !inMiniGame;
+
+  if (inMiniGame) {
+    // Hiding the roomSelector so you can't switch rooms during mini game
+
+    roomSelector.hide();
+    punchButton.hide();
+
+    // Setting up an interval that spawns falling items every interval
+
+    currentItemSpawnDuration = random(ITEM_SPAWN_INTERVAL[0], ITEM_SPAWN_INTERVAL[1]);
+  } else {
+    // Showing the selector again
+
+    roomSelector.show();
+
+    // Clearing the item list after the game ends
+
+    ITEM_LIST.length = 0;
+
+    // Playing happy anim when done playing
+
+    if (!isDead) {
+      punchButton.show();
+      petAnimator.play("happyAnim");
+    }
   }
 }
 
@@ -628,27 +915,22 @@ function setupRoom() {
   feedButton.hide();
   sleepButton.hide();
   medicineButton.hide();
+  miniGameButton.hide();
 
   let showButtons = !isSleeping && !isDead;
 
   switch (currentScene) {
     case LIVINGROOM_SCENE:
-      console.log("Scene switched to livingroom!");
+      if (showButtons) miniGameButton.show();
       break;
     case KITCHEN_SCENE:
       if (showButtons) feedButton.show();
-      console.log("Scene switched to kitchen!");
       break;
     case BATHROOM_SCENE:
       if (showButtons) medicineButton.show();
-      console.log("Scene switched to bathroom!");
       break;
     case BEDROOM_SCENE:
-      sleepButton.show();
-      console.log("Scene switched to bedroom!");
-      break;
-    default:
-      console.warn("Scene switched to an unknown scene");
+      if (!isDead) sleepButton.show();
   }
 }
 
@@ -734,6 +1016,14 @@ function addFullness(amount) {
   fullness = clampStat(fullness + amount);
 }
 
+function addFoodPackets(amount = 1) {
+  foodPackets += amount;
+}
+
+function addMedicine(amount = 1) {
+  medicine += amount;
+}
+
 function saveStats() {
   if (statsSaveDebounce) {
     statsSaveDebounce = false;
@@ -744,7 +1034,11 @@ function saveStats() {
       happiness,
       health,
       foodPackets,
-      medicine
+      medicine,
+      currentScene,
+      isSleeping,
+      isDead,
+      inScene
     });
 
     setTimeout(() => (statsSaveDebounce = true), STATS_SAVE_COOLDOWN);
@@ -782,6 +1076,46 @@ function styleElement(element, textSize) {
   element.style("font-weight", ELEMENT_FONT_WEIGHT);
   element.style("color", elementTextColor);
   element.style("-webkit-text-stroke", ELEMENT_TEXT_STROKE);
+}
+
+class FallingItem {
+  constructor(img, addPoints) {
+    this.img = img;
+    this.fallSpeed = random(ITEM_FALL_SPEED[0], ITEM_FALL_SPEED[1]);
+    this.addPoints = addPoints;
+
+    this.x = random(0, WINDOW_WIDTH);
+    this.y = ITEM_SPAWN_Y;
+
+    this.active = true;
+  }
+
+  checkClick() {
+    if (this.active && dist(this.x, this.y, mouseX, mouseY) <= ITEM_DETECTION_RADIUS) {
+      this.active = false;
+      this.addPoints();
+      itemClaimSound.play();
+    }
+  }
+
+  display() {
+    if (this.active) {
+      let y = this.y + this.fallSpeed * deltaTime;
+
+      push();
+
+      imageMode(CENTER);
+      image(this.img, this.x, y);
+
+      pop();
+
+      if (y >= ITEM_DESPAWN_Y) {
+        this.active = false;
+      } else {
+        this.y = y;
+      }
+    }
+  }
 }
 
 // AnimationPlayer class that makes me able to use videos as animations easily
