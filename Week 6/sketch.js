@@ -10,10 +10,7 @@ const ASSET_FOLDER = "./assets";
 const ESSENTIALS_IMAGE_FOLDER = "../Essentials/images";
 
 let buttonPressSound;
-let insufficientPointsSound;
-let saveGameSound;
 let dieSound;
-let menuAudio;
 
 const ELEMENT_BORDER_RADIUS = "15px";
 const ELEMENT_BORDER_WIDTH = "5px";
@@ -83,6 +80,7 @@ const STATS_DEFAULT = {
   energy: STATS_MAX_VALUE,
   happiness: STATS_MAX_VALUE,
   health: STATS_MAX_VALUE,
+  dirtiness: 0,
   foodPackets: 5,
   medicine: 1,
   currentScene: LIVINGROOM_SCENE,
@@ -96,12 +94,14 @@ const FULLNESS_DRAIN_SPEED = 0.001;
 const ENERGY_DRAIN_SPEED = 0.00075;
 const HAPPINESS_DRAIN_SPEED = 0.001;
 const HEALTH_DRAIN_SPEED = 0;
+const DIRTINESS_GAIN_SPEED = 0.0008;
 
 const PLAY_FULLNESS_DRAIN_ADDITION = 0.0005;
 
 const ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00025;
 const ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION = 0.0002;
 const ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00015;
+const MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.0001;
 
 const ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION = 0.00025;
 const LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
@@ -110,7 +110,7 @@ const ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION = 0.00015;
 const PLAY_ENERGY_DRAIN_ADDITION = 0.00035;
 
 const SLEEP_ENERGY_GAIN_SPEED = 0.002;
-const SLEEP_HEALTH_GAIN_SPEED = 0.00075;
+const SLEEP_HEALTH_GAIN_SPEED = 0.0008;
 
 const PLAY_HAPPINESS_GAIN_SPEED = 0.002;
 
@@ -152,6 +152,7 @@ const FULLNESS_STING = "FULLNESS";
 const ENERGY_STRING = "ENERGY";
 const HAPPINESS_STRING = "HAPPINESS";
 const HEALTH_STRING = "HEALTH";
+const DIRTINESS_STRING = "DIRTINESS";
 
 const SAVE_TEXT_STRING = "Game saved!";
 const SAVE_TEXT_SIZE = 50;
@@ -170,6 +171,8 @@ const NO_MEDICINE_TEXT_POS_Y = 50;
 const NO_MEDICINE_TEXT_STROKE_WEIGHT = 4;
 const NO_MEDICINE_TEXT_DURATION = 1000;
 
+let insufficientPointsSound;
+
 const SAVE_BUTTON_STRING = "SAVE GAME";
 const SAVE_BUTTON_WIDTH = 150;
 const SAVE_BUTTON_HEIGHT = 60;
@@ -177,6 +180,8 @@ const SAVE_BUTTON_BOUND_DIST = 15 - PAGE_TO_CANVAS_DIST;
 const SAVE_BUTTON_POS_X = WINDOW_WIDTH - SAVE_BUTTON_WIDTH - SAVE_BUTTON_BOUND_DIST;
 const SAVE_BUTTON_POS_Y = WINDOW_HEIGHT - SAVE_BUTTON_HEIGHT - SAVE_BUTTON_BOUND_DIST;
 const SAVE_BUTTON_TEXT_SIZE = "21px";
+
+let saveGameSound;
 
 const PUNCH_BUTTON_STRING = "PUNCH";
 const PUNCH_BUTTON_WIDTH = 150;
@@ -187,6 +192,8 @@ const PUNCH_BUTTON_POS_Y = SAVE_BUTTON_POS_Y - PUNCH_BUTTON_HEIGHT - PUNCH_BUTTO
 const PUNCH_BUTTON_TEXT_SIZE = "30px";
 const PUNCH_BUTTON_HEALTH_DRAIN = 5;
 const PUNCH_BUTTON_HAPPINESS_DRAIN = 10;
+
+let punchSound;
 
 const RESTART_BUTTON_STRING = "RESTART GAME";
 const RESTART_BUTTON_WIDTH = 200;
@@ -222,6 +229,7 @@ let fullness;
 let energy;
 let happiness;
 let health;
+let dirtiness;
 let foodPackets;
 let medicine;
 
@@ -253,6 +261,8 @@ let happinessBarMinColor;
 let happinessBarMaxColor;
 let healthBarMinColor;
 let healthBarMaxColor;
+let dirtinessBarMinColor;
+let dirtinessBarMaxColor;
 
 let lightsOffTintColor;
 
@@ -312,13 +322,11 @@ function preload() {
 
   dieSound = loadSound(getFilePath(ASSET_FOLDER, "pet-die.mp3"));
 
-  menuAudio = loadSound(getFilePath(ASSET_FOLDER, "menu-audio.mp3"));
-  menuAudio.setVolume(0.5);
-  menuAudio.setLoop(true);
-
   eatSound = loadSound(getFilePath(ASSET_FOLDER, "pet-eat.mp3"));
 
   medicineTakeSound = loadSound(getFilePath(ASSET_FOLDER, "pet-medicine-take.ogg"));
+
+  punchSound = loadSound(getFilePath(ASSET_FOLDER, "pet-punch.mp3"));
 
   livingroomBackground = loadImage(getFilePath(ASSET_FOLDER, "livingroom.jpg"));
   kitchenBackground = loadImage(getFilePath(ASSET_FOLDER, "kitchen.webp"));
@@ -358,6 +366,7 @@ function setup() {
   energy = gameStats.energy;
   happiness = gameStats.happiness;
   health = gameStats.health;
+  dirtiness = gameStats.dirtiness;
   foodPackets = gameStats.foodPackets;
   medicine = gameStats.medicine;
   currentScene = gameStats.currentScene;
@@ -378,6 +387,8 @@ function setup() {
   happinessBarMaxColor = color(255, 255, 0);
   healthBarMinColor = color(255, 0, 0);
   healthBarMaxColor = color(0, 215, 0);
+  dirtinessBarMinColor = color(0, 0, 255);
+  dirtinessBarMaxColor = color(130, 100, 60);
 
   // The color that appears in the dark
 
@@ -607,7 +618,7 @@ function setup() {
     addHealth(-PUNCH_BUTTON_HEALTH_DRAIN);
     addHappiness(-PUNCH_BUTTON_HAPPINESS_DRAIN);
     petAnimator.play("punchAnim");
-    // Punch sound here
+    punchSound.play();
   });
 
   punchButton.hide();
@@ -627,7 +638,6 @@ function setup() {
     onMenu = false;
 
     setupRoom();
-    menuAudio.stop();
     startButton.hide();
     roomSelector.show();
 
@@ -659,10 +669,6 @@ function setup() {
   setInterval(() => {
     if (!onMenu) saveStats();
   }, STATS_SAVE_INTERVAL);
-
-  // Playing the menu audio
-
-  menuAudio.play();
 }
 
 function draw() {
@@ -750,6 +756,7 @@ function draw() {
     drawStatBar(ENERGY_STRING, energy, energyBarMinColor, energyBarMaxColor, 1);
     drawStatBar(HAPPINESS_STRING, happiness, happinessBarMinColor, happinessBarMaxColor, 2);
     drawStatBar(HEALTH_STRING, health, healthBarMinColor, healthBarMaxColor, 3);
+    drawStatBar(DIRTINESS_STRING, dirtiness, dirtinessBarMinColor, dirtinessBarMaxColor, 4);
 
     // Displaying the point indicators
 
@@ -803,7 +810,9 @@ function draw() {
     let fullnessDrainSpeed = FULLNESS_DRAIN_SPEED;
     let energyDrainSpeed = (isSleeping && -SLEEP_ENERGY_GAIN_SPEED) || ENERGY_DRAIN_SPEED;
     let happinessDrainSpeed = (inMiniGame && -PLAY_HAPPINESS_GAIN_SPEED) || HAPPINESS_DRAIN_SPEED;
-    let healthDrainSpeed = (isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED;
+    let healthDrainSpeed =
+      ((isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED) +
+      (MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION * dirtiness) / STATS_MAX_VALUE;
 
     // Modifying the stat drain speeds based on other stats
 
@@ -826,9 +835,10 @@ function draw() {
 
     if (!isDead) {
       addFullness(-fullnessDrainSpeed * deltaTime);
-      if (energyDrainSpeed !== 0) addEnergy(-energyDrainSpeed * deltaTime);
-      if (!isSleeping && happinessDrainSpeed !== 0) addHappiness(-happinessDrainSpeed * deltaTime);
-      if (healthDrainSpeed !== 0) addHealth(-healthDrainSpeed * deltaTime);
+      addEnergy(-energyDrainSpeed * deltaTime);
+      addHealth(-healthDrainSpeed * deltaTime);
+      addDirtiness(DIRTINESS_GAIN_SPEED * deltaTime);
+      if (!isSleeping) addHappiness(-happinessDrainSpeed * deltaTime);
     }
 
     // Making the character die if the health is zero
@@ -1016,6 +1026,10 @@ function addFullness(amount) {
   fullness = clampStat(fullness + amount);
 }
 
+function addDirtiness(amount) {
+  dirtiness = clampStat(dirtiness + amount);
+}
+
 function addFoodPackets(amount = 1) {
   foodPackets += amount;
 }
@@ -1033,6 +1047,7 @@ function saveStats() {
       energy,
       happiness,
       health,
+      dirtiness,
       foodPackets,
       medicine,
       currentScene,
