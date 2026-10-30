@@ -74,7 +74,7 @@ const STATS_MAX_VALUE = 100;
 const STATS_SAVE_INTERVAL = 30000;
 const STATS_SAVE_COOLDOWN = 2000;
 const STATS_STORE_KEY = "Stats";
-const STATS_EXPRESSION_THRESHOLD = 30;
+const STATS_LOW_PERCENTAGE = 30;
 const STATS_DEFAULT = {
   fullness: STATS_MAX_VALUE,
   energy: STATS_MAX_VALUE,
@@ -83,6 +83,7 @@ const STATS_DEFAULT = {
   dirtiness: 0,
   foodPackets: 5,
   medicine: 1,
+  sponges: 2,
   currentScene: LIVINGROOM_SCENE,
   isSleeping: false,
   isDead: false
@@ -141,6 +142,16 @@ const MEDICINE_BUTTON_HEALTH_ADDITION = 10;
 
 let medicineTakeSound;
 
+const CLEAN_BUTTON_STRING = "CLEAN";
+const CLEAN_BUTTON_WIDTH = 150;
+const CLEAN_BUTTON_HEIGHT = 50;
+const CLEAN_BUTTON_POS_X = 15 + PAGE_TO_CANVAS_DIST;
+const CLEAN_BUTTON_POS_Y = CENTER_POS_Y - CLEAN_BUTTON_HEIGHT / 2 + PAGE_TO_CANVAS_DIST;
+const CLEAN_BUTTON_TEXT_SIZE = "30px";
+const CLEAN_BUTTON_DIRTINESS_DRAIN = 20;
+
+let cleanSound;
+
 const MINI_GAME_BUTTON_STRING = "TOGGLE MINI GAME";
 const MINI_GAME_BUTTON_WIDTH = 200;
 const MINI_GAME_BUTTON_HEIGHT = 50;
@@ -170,6 +181,12 @@ const NO_MEDICINE_TEXT_SIZE = 40;
 const NO_MEDICINE_TEXT_POS_Y = 50;
 const NO_MEDICINE_TEXT_STROKE_WEIGHT = 4;
 const NO_MEDICINE_TEXT_DURATION = 1000;
+
+const NO_SPONGES_TEXT_STRING = "Not enough sponges";
+const NO_SPONGES_TEXT_SIZE = 40;
+const NO_SPONGES_TEXT_POS_Y = 50;
+const NO_SPONGES_TEXT_STROKE_WEIGHT = 4;
+const NO_SPONGES_TEXT_DURATION = 1000;
 
 let insufficientPointsSound;
 
@@ -225,6 +242,8 @@ const FOOD_PACKET_TEXT_STRING = "FOOD PACKETS";
 
 const MEDICINE_TEXT_STRING = "MEDICINE";
 
+const SPONGES_TEXT_STRING = "SPONGES";
+
 let fullness;
 let energy;
 let happiness;
@@ -232,11 +251,13 @@ let health;
 let dirtiness;
 let foodPackets;
 let medicine;
+let sponges;
 
 let saveButton;
 let feedButton;
 let sleepButton;
 let medicineButton;
+let cleanButton;
 let miniGameButton;
 let punchButton;
 let restartButton;
@@ -249,6 +270,7 @@ let statsSaveDebounce = true;
 
 let showNoFoodText = false;
 let showNoMedicineText = false;
+let showNoSpongesText = false;
 
 let backgroundBarColor;
 let statBarTextColor;
@@ -269,9 +291,11 @@ let lightsOffTintColor;
 let saveTextColor;
 let noFoodTextColor;
 let noMedicineTextColor;
+let noSpongesTextColor;
 
 let foodPacketTextColor;
 let medicineTextColor;
+let spongesTextColor;
 
 const GAME_TITLE_STRING = "Take care of Mr. Face";
 const GAME_TITLE_POS_Y = 150;
@@ -299,16 +323,17 @@ const ITEM_LIST = [];
 const ITEM_DETECTION_RADIUS = ITEM_SIZE / 2;
 const ITEM_SPAWN_Y = -ITEM_DETECTION_RADIUS;
 const ITEM_DESPAWN_Y = WINDOW_HEIGHT + ITEM_DETECTION_RADIUS;
-const MEDICINE_CHANCE = 5;
 
 let miniGameBackgroundColor;
 
 let currentItemSpawnDuration;
 let lastItemSpawn = 0;
+let itemData;
 
 let itemClaimSound;
 let foodPacketImage;
 let medicineImage;
+let spongeImage;
 
 function preload() {
   buttonPressSound = loadSound(getFilePath(ASSET_FOLDER, "button-press.mp3"));
@@ -326,6 +351,8 @@ function preload() {
 
   medicineTakeSound = loadSound(getFilePath(ASSET_FOLDER, "pet-medicine-take.ogg"));
 
+  cleanSound = loadSound(getFilePath(ASSET_FOLDER, "pet-clean.mp3"));
+
   punchSound = loadSound(getFilePath(ASSET_FOLDER, "pet-punch.mp3"));
 
   livingroomBackground = loadImage(getFilePath(ASSET_FOLDER, "livingroom.jpg"));
@@ -338,6 +365,7 @@ function preload() {
 
   foodPacketImage = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "food-pack.webp"));
   medicineImage = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "medicine.png"));
+  spongeImage = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "sponge.webp"));
 
   petAnimator = new AnimationPlayer(PET_ANIMATIONS);
 }
@@ -369,6 +397,7 @@ function setup() {
   dirtiness = gameStats.dirtiness;
   foodPackets = gameStats.foodPackets;
   medicine = gameStats.medicine;
+  sponges = gameStats.sponges;
   currentScene = gameStats.currentScene;
   isSleeping = gameStats.isSleeping;
   isDead = gameStats.isDead;
@@ -402,11 +431,13 @@ function setup() {
 
   noFoodTextColor = color(255, 255, 0);
   noMedicineTextColor = color(255, 0, 255);
+  noSpongesTextColor = color(75, 150, 75);
 
   // The color of the food packet indicator
 
   foodPacketTextColor = color(255, 155, 0);
   medicineTextColor = color(0, 155, 255);
+  spongesTextColor = color(150, 75, 150);
 
   // The color of the game title
 
@@ -419,6 +450,30 @@ function setup() {
   // Mini game background color
 
   miniGameBackgroundColor = color(0, 225, 255);
+
+  // Setting up an interval that spawns falling items every interval
+
+  currentItemSpawnDuration = getNewItemSpawnInterval();
+
+  // The functions tied to adding points to the system
+
+  itemData = [
+    {
+      weight: 60,
+      image: foodPacketImage,
+      add: () => foodPackets++
+    },
+    {
+      weight: 35,
+      image: spongeImage,
+      add: () => sponges++
+    },
+    {
+      weight: 5,
+      image: medicineImage,
+      add: () => medicine++
+    }
+  ];
 
   // Creating the room selector, which makes you able to change scenes
 
@@ -540,6 +595,31 @@ function setup() {
   medicineButton.hide();
 
   styleElement(medicineButton, MEDICINE_BUTTON_TEXT_SIZE);
+
+  // Clean button
+
+  cleanButton = createButton(CLEAN_BUTTON_STRING);
+
+  // Placement
+
+  cleanButton.position(CLEAN_BUTTON_POS_X, CLEAN_BUTTON_POS_Y);
+  cleanButton.size(CLEAN_BUTTON_WIDTH, CLEAN_BUTTON_HEIGHT);
+
+  cleanButton.mouseClicked(() => {
+    if (sponges > 0) {
+      sponges--;
+      addDirtiness(-CLEAN_BUTTON_DIRTINESS_DRAIN);
+      cleanSound.play();
+    } else if (!showNoSpongesText) {
+      showNoSpongesText = true;
+      setTimeout(() => (showNoSpongesText = false), NO_SPONGES_TEXT_DURATION);
+      insufficientPointsSound.play();
+    }
+  });
+
+  cleanButton.hide();
+
+  styleElement(cleanButton, CLEAN_BUTTON_TEXT_SIZE);
 
   // Play button
 
@@ -663,6 +743,7 @@ function setup() {
 
   foodPacketImage.resize(0, ITEM_SIZE);
   medicineImage.resize(0, ITEM_SIZE);
+  spongeImage.resize(0, ITEM_SIZE);
 
   // Making the game save every interval
 
@@ -699,7 +780,7 @@ function draw() {
 
       if (millis() - lastItemSpawn >= currentItemSpawnDuration) {
         lastItemSpawn = millis();
-        currentItemSpawnDuration = random(ITEM_SPAWN_INTERVAL[0], ITEM_SPAWN_INTERVAL[1]);
+        currentItemSpawnDuration = getNewItemSpawnInterval();
         let addNewItem = true;
 
         // If there are any inactive falling items, it will reassign it's position in the array with a new one
@@ -762,48 +843,43 @@ function draw() {
 
     drawPointIndicator(FOOD_PACKET_TEXT_STRING, foodPackets, foodPacketTextColor);
     drawPointIndicator(MEDICINE_TEXT_STRING, medicine, medicineTextColor, 1);
+    drawPointIndicator(SPONGES_TEXT_STRING, sponges, spongesTextColor, 2);
 
     // Displaying an indicator that tells you that the game has been saved
 
-    if (!statsSaveDebounce) {
-      push();
-
-      stroke(0);
-      strokeWeight(SAVE_TEXT_STROKE_WEIGHT);
-      fill(saveTextColor);
-      textSize(SAVE_TEXT_SIZE);
-      text(SAVE_TEXT_STRING, CENTER_POS_X, SAVE_TEXT_POS_Y);
-
-      pop();
-    }
+    if (!statsSaveDebounce)
+      drawInfoText(SAVE_TEXT_STRING, SAVE_TEXT_POS_Y, saveTextColor, SAVE_TEXT_SIZE, SAVE_TEXT_STROKE_WEIGHT);
 
     // Same as the game save indictor, but if there isn't any food
 
-    if (showNoFoodText) {
-      push();
-
-      stroke(0);
-      strokeWeight(NO_FOOD_TEXT_STROKE_WEIGHT);
-      fill(noFoodTextColor);
-      textSize(NO_FOOD_TEXT_SIZE);
-      text(NO_FOOD_TEXT_STRING, CENTER_POS_X, NO_FOOD_TEXT_POS_Y);
-
-      pop();
-    }
+    if (showNoFoodText)
+      drawInfoText(
+        NO_FOOD_TEXT_STRING,
+        NO_FOOD_TEXT_POS_Y,
+        noFoodTextColor,
+        NO_FOOD_TEXT_SIZE,
+        NO_FOOD_TEXT_STROKE_WEIGHT
+      );
 
     // Also the same thing as the other one
 
-    if (showNoMedicineText) {
-      push();
+    if (showNoMedicineText)
+      drawInfoText(
+        NO_MEDICINE_TEXT_STRING,
+        NO_MEDICINE_TEXT_POS_Y,
+        noMedicineTextColor,
+        NO_MEDICINE_TEXT_SIZE,
+        NO_MEDICINE_TEXT_STROKE_WEIGHT
+      );
 
-      stroke(0);
-      strokeWeight(NO_MEDICINE_TEXT_STROKE_WEIGHT);
-      fill(noMedicineTextColor);
-      textSize(NO_MEDICINE_TEXT_SIZE);
-      text(NO_MEDICINE_TEXT_STRING, CENTER_POS_X, NO_MEDICINE_TEXT_POS_Y);
-
-      pop();
-    }
+    if (showNoSpongesText)
+      drawInfoText(
+        NO_SPONGES_TEXT_STRING,
+        NO_SPONGES_TEXT_POS_Y,
+        noSpongesTextColor,
+        NO_SPONGES_TEXT_SIZE,
+        NO_SPONGES_TEXT_STROKE_WEIGHT
+      );
 
     // The starting drain speeds that will change based on some key factors
 
@@ -816,7 +892,7 @@ function draw() {
 
     // Modifying the stat drain speeds based on other stats
 
-    if (health <= STATS_EXPRESSION_THRESHOLD) happinessDrainSpeed += LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION;
+    if (health <= STATS_LOW_PERCENTAGE) happinessDrainSpeed += LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION;
     if (energy === 0) healthDrainSpeed += ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION;
     if (happiness === 0) healthDrainSpeed += ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION;
 
@@ -863,11 +939,11 @@ function draw() {
 
     if (isDead) {
       petAnimator.play("deathIdle");
-    } else if (isSleeping || energy <= STATS_EXPRESSION_THRESHOLD) {
+    } else if (isSleeping || energy <= STATS_LOW_PERCENTAGE) {
       petAnimator.play("sleepyIdle");
-    } else if (happiness <= STATS_EXPRESSION_THRESHOLD || health <= STATS_EXPRESSION_THRESHOLD) {
+    } else if (happiness <= STATS_LOW_PERCENTAGE || health <= STATS_LOW_PERCENTAGE) {
       petAnimator.play("sadIdle");
-    } else if (fullness <= STATS_EXPRESSION_THRESHOLD) {
+    } else if (fullness <= STATS_LOW_PERCENTAGE) {
       petAnimator.play("hungryIdle");
     } else {
       petAnimator.play("mainIdle");
@@ -883,12 +959,27 @@ function mouseClicked() {
   }
 }
 
+function getNewItemSpawnInterval() {
+  return random(ITEM_SPAWN_INTERVAL[0], ITEM_SPAWN_INTERVAL[1]);
+}
+
 function getNewFallingItem() {
-  let isMedicine = random(0, 100) <= MEDICINE_CHANCE;
-  return new FallingItem(
-    (isMedicine && medicineImage) || foodPacketImage,
-    (isMedicine && addMedicine) || addFoodPackets
-  );
+  let totalWeight = 0;
+
+  for (const itemInfo of itemData) {
+    totalWeight += itemInfo.weight;
+  }
+
+  let randomWeight = random(0, totalWeight);
+  let currentWeight = 0;
+
+  for (const itemInfo of itemData) {
+    currentWeight += itemInfo.weight;
+
+    if (randomWeight <= currentWeight) {
+      return new FallingItem(itemInfo.image, itemInfo.add);
+    }
+  }
 }
 
 function toggleMiniGame() {
@@ -899,10 +990,6 @@ function toggleMiniGame() {
 
     roomSelector.hide();
     punchButton.hide();
-
-    // Setting up an interval that spawns falling items every interval
-
-    currentItemSpawnDuration = random(ITEM_SPAWN_INTERVAL[0], ITEM_SPAWN_INTERVAL[1]);
   } else {
     // Showing the selector again
 
@@ -925,6 +1012,7 @@ function setupRoom() {
   feedButton.hide();
   sleepButton.hide();
   medicineButton.hide();
+  cleanButton.hide();
   miniGameButton.hide();
 
   let showButtons = !isSleeping && !isDead;
@@ -937,7 +1025,10 @@ function setupRoom() {
       if (showButtons) feedButton.show();
       break;
     case BATHROOM_SCENE:
-      if (showButtons) medicineButton.show();
+      if (showButtons) {
+        medicineButton.show();
+        cleanButton.show();
+      }
       break;
     case BEDROOM_SCENE:
       if (!isDead) sleepButton.show();
@@ -1006,6 +1097,18 @@ function drawPointIndicator(label, value, textColor, stackIndex = 0) {
   pop();
 }
 
+function drawInfoText(str, y, c, size, strokeWgt) {
+  push();
+
+  stroke(0);
+  strokeWeight(strokeWgt);
+  fill(c);
+  textSize(size);
+  text(str, CENTER_POS_X, y);
+
+  pop();
+}
+
 function clampStat(value) {
   return constrain(value, 0, STATS_MAX_VALUE);
 }
@@ -1030,14 +1133,6 @@ function addDirtiness(amount) {
   dirtiness = clampStat(dirtiness + amount);
 }
 
-function addFoodPackets(amount = 1) {
-  foodPackets += amount;
-}
-
-function addMedicine(amount = 1) {
-  medicine += amount;
-}
-
 function saveStats() {
   if (statsSaveDebounce) {
     statsSaveDebounce = false;
@@ -1050,6 +1145,7 @@ function saveStats() {
       dirtiness,
       foodPackets,
       medicine,
+      sponges,
       currentScene,
       isSleeping,
       isDead,
