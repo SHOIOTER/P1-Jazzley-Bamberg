@@ -9,6 +9,8 @@ const CENTER_POS_Y = WINDOW_HEIGHT / 2;
 const ASSET_FOLDER = "./assets";
 const ESSENTIALS_IMAGE_FOLDER = "../Essentials/images";
 
+let pureWhite;
+
 let buttonPressSound;
 let dieSound;
 
@@ -36,6 +38,8 @@ const ROOM_SELECTOR_TEXT_SIZE = "22px";
 let currentScene;
 let roomSelector;
 
+let menuBackground;
+let outdoorsBackground;
 let livingroomBackground;
 let kitchenBackground;
 let bathroomBackground;
@@ -47,25 +51,25 @@ const PET_ANIMATIONS = {
     looped: true
   },
   hungryIdle: {
-    track: ["main-idle.webm", "main-idle.mov"],
+    track: ["hungry-idle.webm", "hungry-idle.mov"],
     looped: true
   },
   sadIdle: {
-    track: ["main-idle.webm", "main-idle.mov"],
+    track: ["sad-idle.webm", "sad-idle.mov"],
     looped: true
   },
   sleepyIdle: {
-    track: ["main-idle.webm", "main-idle.mov"],
+    track: ["sleepy-idle.webm", "sleepy-idle.mov"],
     looped: true
   },
   deathIdle: {
-    track: ["main-idle.webm", "main-idle.mov"],
+    track: ["death-idle.webm", "death-idle.mov"],
     looped: true
   },
-  eatAnim: { track: ["main-idle.webm", "main-idle.mov"] },
-  happyAnim: { track: ["main-idle.webm", "main-idle.mov"] },
-  punchAnim: { track: ["main-idle.webm", "main-idle.mov"] },
-  dieAnim: { track: ["main-idle.webm", "main-idle.mov"] }
+  eatAnim: { track: ["eat-anim.webm", "eat-anim.mov"] },
+  happyAnim: { track: ["happy-anim.webm", "happy-anim.mov"] },
+  punchAnim: { track: ["punch-anim.webm", "punch-anim.mov"] },
+  dieAnim: { track: ["die-anim.webm", "die-anim.mov"] }
 };
 
 let petAnimator;
@@ -74,7 +78,8 @@ const STATS_MAX_VALUE = 100;
 const STATS_SAVE_INTERVAL = 30000;
 const STATS_SAVE_COOLDOWN = 2000;
 const STATS_STORE_KEY = "Stats";
-const STATS_LOW_PERCENTAGE = 30;
+const STATS_LOW_VALUE = 30;
+const STATS_HIGH_VALUE = STATS_MAX_VALUE - STATS_LOW_VALUE;
 const STATS_DEFAULT = {
   fullness: STATS_MAX_VALUE,
   energy: STATS_MAX_VALUE,
@@ -83,7 +88,7 @@ const STATS_DEFAULT = {
   dirtiness: 0,
   foodPackets: 5,
   medicine: 1,
-  sponges: 2,
+  sponges: 1,
   currentScene: LIVINGROOM_SCENE,
   isSleeping: false,
   isDead: false
@@ -102,7 +107,7 @@ const PLAY_FULLNESS_DRAIN_ADDITION = 0.0005;
 const ZERO_FULLNESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00025;
 const ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION = 0.0002;
 const ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.00015;
-const MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.0001;
+const MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION = 0.0002;
 
 const ZERO_FULLNESS_HAPPINESS_DRAIN_SPEED_ADDITION = 0.00025;
 const LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
@@ -110,10 +115,10 @@ const LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION = 0.0005;
 const ZERO_FULLNESS_ENERGY_DRAIN_SPEED_ADDITION = 0.00015;
 const PLAY_ENERGY_DRAIN_ADDITION = 0.00035;
 
-const SLEEP_ENERGY_GAIN_SPEED = 0.002;
-const SLEEP_HEALTH_GAIN_SPEED = 0.0008;
+const SLEEP_ENERGY_GAIN_SPEED = 0.003;
+const SLEEP_HEALTH_GAIN_SPEED = 0.001;
 
-const PLAY_HAPPINESS_GAIN_SPEED = 0.002;
+const PLAY_HAPPINESS_GAIN_SPEED = 0.004;
 
 const FEED_BUTTON_STRING = "FEED";
 const FEED_BUTTON_WIDTH = 200;
@@ -148,7 +153,7 @@ const CLEAN_BUTTON_HEIGHT = 50;
 const CLEAN_BUTTON_POS_X = 15 + PAGE_TO_CANVAS_DIST;
 const CLEAN_BUTTON_POS_Y = CENTER_POS_Y - CLEAN_BUTTON_HEIGHT / 2 + PAGE_TO_CANVAS_DIST;
 const CLEAN_BUTTON_TEXT_SIZE = "30px";
-const CLEAN_BUTTON_DIRTINESS_DRAIN = 20;
+const CLEAN_BUTTON_DIRTINESS_DRAIN = 15;
 
 let cleanSound;
 
@@ -208,7 +213,7 @@ const PUNCH_BUTTON_POS_X = WINDOW_WIDTH - PUNCH_BUTTON_WIDTH - PUNCH_BUTTON_BOUN
 const PUNCH_BUTTON_POS_Y = SAVE_BUTTON_POS_Y - PUNCH_BUTTON_HEIGHT - PUNCH_BUTTON_BOUND_DIST;
 const PUNCH_BUTTON_TEXT_SIZE = "30px";
 const PUNCH_BUTTON_HEALTH_DRAIN = 5;
-const PUNCH_BUTTON_HAPPINESS_DRAIN = 10;
+const PUNCH_BUTTON_HAPPINESS_DRAIN = 5;
 
 let punchSound;
 
@@ -287,6 +292,8 @@ let dirtinessBarMinColor;
 let dirtinessBarMaxColor;
 
 let lightsOffTintColor;
+let dirtinessTintColor;
+let lightsOffDirtinessTintColor;
 
 let saveTextColor;
 let noFoodTextColor;
@@ -317,14 +324,12 @@ let onMenu = true;
 let inMiniGame = false;
 
 const ITEM_SIZE = 150;
-const ITEM_FALL_SPEED = [0.4, 0.8];
-const ITEM_SPAWN_INTERVAL = [1000, 2500];
+const ITEM_FALL_SPEED = [0.5, 1];
+const ITEM_SPAWN_INTERVAL = [750, 2250];
 const ITEM_LIST = [];
 const ITEM_DETECTION_RADIUS = ITEM_SIZE / 2;
 const ITEM_SPAWN_Y = -ITEM_DETECTION_RADIUS;
 const ITEM_DESPAWN_Y = WINDOW_HEIGHT + ITEM_DETECTION_RADIUS;
-
-let miniGameBackgroundColor;
 
 let currentItemSpawnDuration;
 let lastItemSpawn = 0;
@@ -355,10 +360,12 @@ function preload() {
 
   punchSound = loadSound(getFilePath(ASSET_FOLDER, "pet-punch.mp3"));
 
-  livingroomBackground = loadImage(getFilePath(ASSET_FOLDER, "livingroom.jpg"));
-  kitchenBackground = loadImage(getFilePath(ASSET_FOLDER, "kitchen.webp"));
-  bathroomBackground = loadImage(getFilePath(ASSET_FOLDER, "bathroom.jpg"));
-  bedroomBackground = loadImage(getFilePath(ASSET_FOLDER, "bedroom.jpg"));
+  menuBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "menu.jpg"));
+  outdoorsBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "outdoors.jpg"));
+  livingroomBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "livingroom.jpg"));
+  kitchenBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "kitchen.jpg"));
+  bathroomBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "bathroom.jpg"));
+  bedroomBackground = loadImage(getFilePath(ESSENTIALS_IMAGE_FOLDER, "bedroom.jpg"));
 
   itemClaimSound = loadSound(getFilePath(ASSET_FOLDER, "item-claim.mp3"));
   itemClaimSound.setVolume(1.5);
@@ -376,6 +383,10 @@ function setup() {
   // Making the pivot of text in the center on default
 
   textAlign(CENTER, CENTER);
+
+  // This is used to lerp the dirtiness tint from white to the specified color based on how dirty it is
+
+  pureWhite = color(255);
 
   // Assigning some element settings
 
@@ -423,6 +434,14 @@ function setup() {
 
   lightsOffTintColor = color(100, 100, 100);
 
+  // The color of the pet when it's very dirty
+
+  dirtinessTintColor = color(0, 255, 0);
+
+  // The dirtinessTintColor for in the dark
+
+  lightsOffDirtinessTintColor = lerpColor(lightsOffTintColor, dirtinessTintColor, 0.5);
+
   // The color of the save indicator that pops up when saving the game
 
   saveTextColor = color(0, 200, 255);
@@ -443,14 +462,6 @@ function setup() {
 
   gameTitleColor = color(0, 200, 255);
 
-  // The color of the menu's background
-
-  menuBackgroundColor = color(75, 175, 75);
-
-  // Mini game background color
-
-  miniGameBackgroundColor = color(0, 225, 255);
-
   // Setting up an interval that spawns falling items every interval
 
   currentItemSpawnDuration = getNewItemSpawnInterval();
@@ -459,17 +470,17 @@ function setup() {
 
   itemData = [
     {
-      weight: 60,
+      weight: 70,
       image: foodPacketImage,
       add: () => foodPackets++
     },
     {
-      weight: 35,
+      weight: 20,
       image: spongeImage,
       add: () => sponges++
     },
     {
-      weight: 5,
+      weight: 10,
       image: medicineImage,
       add: () => medicine++
     }
@@ -732,13 +743,6 @@ function setup() {
 
   styleElement(startButton, START_BUTTON_TEXT_SIZE);
 
-  // Resizing the backgrounds to make them fit within the canvas
-
-  livingroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-  kitchenBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-  bathroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-  bedroomBackground.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-
   // Resizing the items
 
   foodPacketImage.resize(0, ITEM_SIZE);
@@ -756,7 +760,7 @@ function draw() {
   // Rendering the game or the menu screen based on game state
 
   if (onMenu) {
-    background(menuBackgroundColor);
+    background(menuBackground);
 
     push();
     translate(CENTER_POS_X, GAME_TITLE_POS_Y);
@@ -769,11 +773,15 @@ function draw() {
 
     pop();
   } else {
-    // Rendering the core background
+    // The influence multiplier of the dirtiness, used to calculate some stat drain and pet tint
 
-    background(miniGameBackgroundColor);
+    let dirtinessInfluence;
 
     if (inMiniGame) {
+      // Rendering the outside background
+
+      background(outdoorsBackground);
+
       for (const fallingItem of ITEM_LIST) {
         fallingItem.display();
       }
@@ -810,22 +818,50 @@ function draw() {
 
       switch (currentScene) {
         case LIVINGROOM_SCENE:
-          drawLivingroom();
+          background(livingroomBackground);
           break;
         case KITCHEN_SCENE:
-          drawKitchen();
+          background(kitchenBackground);
           break;
         case BATHROOM_SCENE:
-          drawBathroom();
+          background(bathroomBackground);
           break;
         case BEDROOM_SCENE:
-          drawBedroom();
+          background(bedroomBackground);
       }
 
       // Rendering the pet if it should be visible in that scene
 
       if (!inScene || currentScene === inScene) {
+        push();
+
+        // Making it change colour if very dirty
+
+        if (dirtiness >= STATS_LOW_VALUE) {
+          dirtinessInfluence = (dirtiness - STATS_LOW_VALUE) / STATS_HIGH_VALUE;
+          let startPetTintColor;
+          let targetPetTintColor;
+
+          if (isSleeping) {
+            startPetTintColor = lightsOffTintColor;
+            targetPetTintColor = lightsOffDirtinessTintColor;
+          } else {
+            startPetTintColor = pureWhite;
+            targetPetTintColor = dirtinessTintColor;
+          }
+
+          tint(lerpColor(startPetTintColor, targetPetTintColor, dirtinessInfluence));
+        }
+
         petAnimator.render(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        // Drawing the capsule onto the pet if it's sleeping
+
+        if (isSleeping) {
+          imageMode(CENTER);
+        }
+
+        pop();
       }
 
       pop();
@@ -872,6 +908,8 @@ function draw() {
         NO_MEDICINE_TEXT_STROKE_WEIGHT
       );
 
+    // Again
+
     if (showNoSpongesText)
       drawInfoText(
         NO_SPONGES_TEXT_STRING,
@@ -886,13 +924,12 @@ function draw() {
     let fullnessDrainSpeed = FULLNESS_DRAIN_SPEED;
     let energyDrainSpeed = (isSleeping && -SLEEP_ENERGY_GAIN_SPEED) || ENERGY_DRAIN_SPEED;
     let happinessDrainSpeed = (inMiniGame && -PLAY_HAPPINESS_GAIN_SPEED) || HAPPINESS_DRAIN_SPEED;
-    let healthDrainSpeed =
-      ((isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED) +
-      (MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION * dirtiness) / STATS_MAX_VALUE;
+    let healthDrainSpeed = (isSleeping && -SLEEP_HEALTH_GAIN_SPEED) || HEALTH_DRAIN_SPEED;
 
     // Modifying the stat drain speeds based on other stats
 
-    if (health <= STATS_LOW_PERCENTAGE) happinessDrainSpeed += LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION;
+    if (dirtinessInfluence) healthDrainSpeed += MAX_DIRTINESS_HEALTH_DRAIN_SPEED_ADDITION * dirtinessInfluence;
+    if (health <= STATS_LOW_VALUE) happinessDrainSpeed += LOW_HEALTH_HAPPINESS_DRAIN_SPEED_ADDITION;
     if (energy === 0) healthDrainSpeed += ZERO_ENERGY_HEALTH_DRAIN_SPEED_ADDITION;
     if (happiness === 0) healthDrainSpeed += ZERO_HAPPINESS_HEALTH_DRAIN_SPEED_ADDITION;
 
@@ -939,11 +976,11 @@ function draw() {
 
     if (isDead) {
       petAnimator.play("deathIdle");
-    } else if (isSleeping || energy <= STATS_LOW_PERCENTAGE) {
+    } else if (isSleeping || energy <= STATS_LOW_VALUE) {
       petAnimator.play("sleepyIdle");
-    } else if (happiness <= STATS_LOW_PERCENTAGE || health <= STATS_LOW_PERCENTAGE) {
+    } else if (happiness <= STATS_LOW_VALUE || health <= STATS_LOW_VALUE) {
       petAnimator.play("sadIdle");
-    } else if (fullness <= STATS_LOW_PERCENTAGE) {
+    } else if (fullness <= STATS_LOW_VALUE) {
       petAnimator.play("hungryIdle");
     } else {
       petAnimator.play("mainIdle");
@@ -1033,30 +1070,6 @@ function setupRoom() {
     case BEDROOM_SCENE:
       if (!isDead) sleepButton.show();
   }
-}
-
-// Draws the livingroom scene
-
-function drawLivingroom() {
-  image(livingroomBackground, 0, 0);
-}
-
-// Draws the kitchen scene
-
-function drawKitchen() {
-  image(kitchenBackground, 0, 0);
-}
-
-// Draws the bathroom scene
-
-function drawBathroom() {
-  image(bathroomBackground, 0, 0);
-}
-
-// Draws the bedroom scene
-
-function drawBedroom() {
-  image(bedroomBackground, 0, 0);
 }
 
 // A function that draws a stat bar, with optional stack index that offsets the stat bar
