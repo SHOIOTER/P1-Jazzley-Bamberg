@@ -73,7 +73,7 @@ const INFO_DATA = [
   {
     label: "Beroepsbeeld 7",
     header: "Welke werkprocessen vind ik nog lastig? Wat ga ik doen om deze verder te ontwikkelen?",
-    text: "Ik vind het nog lastig om dingen te presenteren omdat ik soms niet zo goed ben in dingen uitleggen.",
+    text: "Ik vind het nog lastig om dingen te presenteren omdat ik soms niet zo goed ben in dingen uitleggen. Gewoon door oefenen, en dan zou het wel beter moeten gaan.",
     video: "quiz.mp4"
   },
   {
@@ -85,7 +85,7 @@ const INFO_DATA = [
   {
     label: "Werkveld 2",
     header: "Op wat voor functie zou ik zelf graag solliciteren?",
-    text: "Game Developer."
+    text: "Game Developer (ik kon niet echt iets precies vinden wat ik wilde)."
   },
   {
     label: "Werkveld 3",
@@ -95,13 +95,13 @@ const INFO_DATA = [
   {
     label: "Werkveld 4",
     header: "Welke kennis/vaardigheden worden, naar verwachting, steeds relevanter binnen mijn vakgebied?",
-    text: "W4"
+    text: "Het goed optimalizeren van spellen, omdat die steeds zwaarder worden."
   },
   {
     label: "Werkveld 5",
     header:
       "Hoe verwacht ik dat mijn vakgebied er over 5 jaar uitziet? Wat is er anders ten opzichte van nu? En wat is hetzelfde gebleven?",
-    text: "W5"
+    text: "Ik denk dat er in de toekomst veel meer AI gebruikt gaat worden, maar dat er dan nog wel developers nodig zijn om te checken of alles wel klopt."
   }
 ];
 
