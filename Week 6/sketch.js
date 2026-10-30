@@ -735,7 +735,7 @@ function setup() {
     if (isDead) restartButton.show();
     else {
       saveButton.show();
-      punchButton.show();
+      if (!isSleeping) punchButton.show();
     }
 
     buttonPressSound.play();
