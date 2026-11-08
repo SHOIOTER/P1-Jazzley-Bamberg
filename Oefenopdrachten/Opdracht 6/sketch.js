@@ -14,7 +14,7 @@ function draw() {
   currentVelocity += GRAVITY * deltaTime;
   currentY += currentVelocity * deltaTime;
 
-  if (collidePointCircle(400, 600, 400, currentY, 100)) currentVelocity = -1;
+  if (collidePointCircle(400, 600, 400, currentY, 100) && currentVelocity > 0) currentVelocity *= -1;
 
   fill(255, 0, 0);
   circle(400, currentY, 100);
